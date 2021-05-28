@@ -9,9 +9,14 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func addUser(db *sql.DB, rollno string, name string) {
-	if userExists(db, rollno) {
-		fmt.Println("User", rollno, "Exists Already")
+type User struct {
+	rollno string
+	name   string
+}
+
+func addUser(db *sql.DB, user *User) {
+	if userExists(db, user) {
+		fmt.Println("User", user.rollno, "Exists Already")
 		return
 	}
 	tx, err := db.Begin()
@@ -22,16 +27,16 @@ func addUser(db *sql.DB, rollno string, name string) {
 	if err != nil {
 		fmt.Println("Error preparing statement")
 	}
-	_, err = stmt.Exec(rollno, name)
+	_, err = stmt.Exec(user.rollno, user.name)
 	if err != nil {
 		fmt.Println("Error executing statement")
 	}
 	tx.Commit()
-	fmt.Println("User", rollno, "Added Succesfully")
+	fmt.Println("User", user.rollno, "Added Succesfully")
 }
 
-func userExists(db *sql.DB, rollno string) bool {
-	row := db.QueryRow("SELECT rollno FROM User WHERE rollno=?", rollno)
+func userExists(db *sql.DB, user *User) bool {
+	row := db.QueryRow("SELECT rollno FROM User WHERE rollno=?", user.rollno)
 	scannedRow := ""
 	row.Scan(&scannedRow)
 	return scannedRow != ""
@@ -51,8 +56,8 @@ func main() {
 
 	db.Exec("create table if not exists User (rollno text, name text)")
 
-	addUser(db, "180199", "Bhuvan Singla")
-	addUser(db, "180199", "Bhuvan Singla")
+	addUser(db, &User{rollno:"180199", name:"Bhuvan Singla"})
+	addUser(db, &User{rollno:"180199", name:"Bhuvan Singla"})
 
 	// http.HandleFunc("/", foo)
 	// http.ListenAndServe(":8080", nil)
