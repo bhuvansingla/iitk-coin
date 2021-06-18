@@ -4,16 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/bhuvansingla/iitk-coin/pkg/account"
 	"github.com/bhuvansingla/iitk-coin/pkg/auth"
-	"github.com/bhuvansingla/iitk-coin/pkg/user"
 
 	_ "github.com/mattn/go-sqlite3"
 )
-
-type Response struct {
-	Success      bool   `json:"success"`
-	ErrorMessage string `json:"error"`
-}
 
 type SignupResponse struct {
 	Response
@@ -38,7 +33,7 @@ func Login(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var res LoginResponse
-	var u user.User
+	var u account.Account
 
 	err := json.NewDecoder(req.Body).Decode(&u)
 	if err != nil {
@@ -76,7 +71,7 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var res SignupResponse
-	var u user.User
+	var u account.Account
 
 	err := json.NewDecoder(req.Body).Decode(&u)
 	if err != nil {

@@ -3,18 +3,18 @@ package auth
 import (
 	"errors"
 
+	"github.com/bhuvansingla/iitk-coin/pkg/account"
 	jwt "github.com/bhuvansingla/iitk-coin/pkg/jwt"
-	"github.com/bhuvansingla/iitk-coin/pkg/user"
 	"github.com/bhuvansingla/iitk-coin/pkg/util"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
 )
 
-func Login(u *user.User) (string, error) {
-	if !user.Exists(u) {
-		return "", errors.New("user does not exist")
+func Login(u *account.Account) (string, error) {
+	if !account.UserExists(u.RollNo) {
+		return "", errors.New("account does not exist")
 	}
-	if !util.CompareHashAndPassword(user.GetStoredPassword(u), u.Password) {
+	if !util.CompareHashAndPassword(account.GetStoredPassword(u), u.Password) {
 		return "", errors.New("passsword does not match")
 	}
 	token, err := jwt.GenerateToken()
@@ -24,17 +24,17 @@ func Login(u *user.User) (string, error) {
 	return token, nil
 }
 
-func Signup(u *user.User) error {
-	if user.Exists(u) {
-		return errors.New("user exists already")
+func Signup(u *account.Account) error {
+	if account.UserExists(u.RollNo) {
+		return errors.New("account exists already")
 	}
 
-	err := user.ValidateRollNo(u)
+	err := account.ValidateRollNo(u)
 	if err != nil {
 		return err
 	}
 
-	err = user.ValidatePassword(u)
+	err = account.ValidatePassword(u)
 	if err != nil {
 		return err
 	}
@@ -45,12 +45,11 @@ func Signup(u *user.User) error {
 	}
 	u.Password = hashedPwd
 
-	err = user.Create(u)
+	err = account.Create(u)
 	if err != nil {
 		return err
 	}
 
-	log.Info("new user signed up ", u.RollNo)
+	log.Info("new account created", u.RollNo)
 	return nil
-	// fmt.Fprintf(w, newUser.Password, newUser.RollNo)
 }

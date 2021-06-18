@@ -18,6 +18,6 @@ func ConnectDB() error {
 }
 
 func CreateUserTable() error {
-	_, err := DB.Exec("create table if not exists User (rollno text, name text, password text, coins int)")
+	_, err := DB.Exec("create table if not exists Account (rollno text, name text, password text, coins int)")
 	return err
 }
