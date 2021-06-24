@@ -3,21 +3,35 @@ package jwt
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/sirupsen/logrus"
 )
 
 var privateKey = []byte("SHHHHH!! SECRET HAI!")
 
-func GenerateToken() (string, error) {
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims["rollno"] = false
+type Claims struct {
+	Rollno string `json:"rollno"`
+	jwt.StandardClaims
+}
+
+func GenerateToken(rollno string) (string, error) {
+
+	expirationTime := time.Now().Add(10 * time.Minute)
+
+	claims := &Claims{
+		Rollno: rollno,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(privateKey)
 
 	if err != nil {
-		fmt.Println("Error here", err.Error())
 		return "", err
 	}
 
@@ -26,32 +40,50 @@ func GenerateToken() (string, error) {
 
 func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header["Token"] != nil {
+		cookie, err := r.Cookie("token")
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
-			token, err := jwt.Parse(r.Header["Token"][0], func(token *jwt.Token) (interface{}, error) {
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("Invalid Signing Method")
-				}
-
-				checkAdmin := token.Claims.(jwt.MapClaims)["admin"]
-				if checkAdmin == true {
-					fmt.Printf("Admin")
-				} else {
-					return nil, fmt.Errorf("Not Admin")
-				}
-
-				return privateKey, nil
-			})
-
-			if err != nil {
-				fmt.Fprintf(w, err.Error())
+		token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("invalid signing method")
 			}
+			return privateKey, nil
+		})
+		//check time
 
-			if token.Valid {
-				endpoint(w, r)
-			}
-		} else {
-			fmt.Fprintf(w, "No Auth Token")
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if token.Valid {
+			endpoint(w, r)
+			return
 		}
 	})
+}
+
+func GetRollnoFromRequest(r *http.Request) (string, error) {
+	cookie, err := r.Cookie("token")
+	if err != nil {
+		return "", err
+	}
+	return GetRollnoFromTokenCookie(cookie)
+}
+
+func GetRollnoFromTokenCookie(cookie *http.Cookie) (string, error) {
+	token := cookie.Value
+	claims := &Claims{}
+	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+		return privateKey, nil
+	})
+	if err != nil {
+		return "", err
+	}
+	return claims.Rollno, nil
 }

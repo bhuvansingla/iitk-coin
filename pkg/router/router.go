@@ -4,10 +4,11 @@ import (
 	"net/http"
 
 	"github.com/bhuvansingla/iitk-coin/pkg/handlers"
+	"github.com/bhuvansingla/iitk-coin/pkg/jwt"
 )
 
 func SetRoutes() {
-	http.HandleFunc("/", handlers.Index)
+	http.Handle("/", jwt.IsAuthorized(handlers.Index))
 	http.HandleFunc("/login", handlers.Login)
 	http.HandleFunc("/signup", handlers.Signup)
 	http.HandleFunc("/coins/add", handlers.AddCoins)
