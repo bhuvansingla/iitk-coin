@@ -11,8 +11,7 @@ func SetRoutes() {
 	http.Handle("/", jwt.IsAuthorized(handlers.Index))
 	http.HandleFunc("/login", handlers.Login)
 	http.HandleFunc("/signup", handlers.Signup)
-	http.HandleFunc("/coins/add", handlers.AddCoins)
-	http.HandleFunc("/coins/transfer", handlers.TransferCoins)
-	http.HandleFunc("/coins/balance", handlers.GetCoinBalance)
-	// http.Handle("/access", jwt.IsAuthorized(secretPage))
+	http.Handle("/coins/add", jwt.IsAuthorized(handlers.AddCoins))
+	http.Handle("/coins/transfer", jwt.IsAuthorized(handlers.TransferCoins))
+	http.Handle("/coins/balance", jwt.IsAuthorized(handlers.GetCoinBalance))
 }

@@ -7,20 +7,31 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+type Role int
+
+const (
+	NormalUser       Role = 0
+	GeneralSecretary Role = 1
+	AssociateHead    Role = 2
+	CoreTeamMember   Role = 3
+)
+
 type Account struct {
 	RollNo   string
 	Name     string
 	Password string
 	Coins    int
+	Role     Role
 }
 
 func Create(account *Account) error {
 
-	stmt, err := db.DB.Prepare("INSERT INTO Account (rollno,name,password,coins) VALUES (?,?,?,?)")
+	account.Role = NormalUser
+	stmt, err := db.DB.Prepare("INSERT INTO Account (rollno,name,password,coins,role) VALUES (?,?,?,?,?)")
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(account.RollNo, account.Name, account.Password, account.Coins)
+	_, err = stmt.Exec(account.RollNo, account.Name, account.Password, account.Coins, account.Role)
 	if err != nil {
 		return err
 	}
@@ -32,6 +43,13 @@ func UserExists(rollno string) bool {
 	scannedRow := ""
 	row.Scan(&scannedRow)
 	return scannedRow != ""
+}
+
+func GetAccountRoleByRollno(rollno string) Role {
+	row := db.DB.QueryRow("SELECT role FROM Account WHERE rollno=?", rollno)
+	var role Role
+	row.Scan(&role) // handle error
+	return role
 }
 
 func GetStoredPassword(account *Account) string {
