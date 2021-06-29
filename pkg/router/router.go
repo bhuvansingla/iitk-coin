@@ -10,6 +10,7 @@ import (
 func SetRoutes() {
 	http.Handle("/", jwt.IsAuthorized(handlers.Index))
 	http.HandleFunc("/login", handlers.Login)
+	http.Handle("/checklogin", jwt.IsAuthorized(handlers.CheckUserIsLoggedIn))
 	http.HandleFunc("/signup", handlers.Signup)
 	http.Handle("/coins/add", jwt.IsAuthorized(handlers.AddCoins))
 	http.Handle("/coins/transfer", jwt.IsAuthorized(handlers.TransferCoins))

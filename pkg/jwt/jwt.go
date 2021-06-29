@@ -1,10 +1,12 @@
 package jwt
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/bhuvansingla/iitk-coin/pkg/cors"
 	jwt "github.com/dgrijalva/jwt-go"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
@@ -15,6 +17,11 @@ var privateKey = []byte("SHHHHH!! SECRET HAI!")
 type Claims struct {
 	Rollno string `json:"rollno"`
 	jwt.StandardClaims
+}
+
+type Response struct {
+	Success      bool   `json:"success"`
+	ErrorMessage string `json:"error"`
 }
 
 func GenerateToken(rollno string) (string, error) {
@@ -39,11 +46,16 @@ func GenerateToken(rollno string) (string, error) {
 }
 
 func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handler {
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cors.SetPolicy(&w, r)
 		cookie, err := r.Cookie("token")
 		if err != nil {
 			logrus.Error(err)
-			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(&Response{
+				Success:      false,
+				ErrorMessage: "unauthorized",
+			})
 			return
 		}
 
@@ -57,7 +69,10 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handle
 
 		if err != nil {
 			logrus.Error(err)
-			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(&Response{
+				Success:      false,
+				ErrorMessage: "unauthorized",
+			})
 			return
 		}
 
