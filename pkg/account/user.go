@@ -75,3 +75,11 @@ func ValidatePassword(account *Account) error {
 	}
 	return nil
 }
+
+func IsAdmin(rollno string) bool {
+	role := GetAccountRoleByRollno(rollno)
+	if role == GeneralSecretary || role == AssociateHead || role == CoreTeamMember {
+		return true
+	}
+	return false
+}

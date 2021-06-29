@@ -18,10 +18,12 @@ type SignupResponse struct {
 
 type LoginResponse struct {
 	Response
+	IsAdmin bool `json:"admin"`
 }
 
 func Login(w http.ResponseWriter, req *http.Request) {
 
+	setCorsResponse(&w, req)
 	w.Header().Set("Content-Type", "application/json")
 
 	if req.Method != "POST" {
@@ -62,6 +64,7 @@ func Login(w http.ResponseWriter, req *http.Request) {
 
 	log.Info(cookie)
 	res.Success = true
+	res.IsAdmin = account.IsAdmin(u.RollNo)
 	json.NewEncoder(w).Encode(res)
 }
 
