@@ -20,7 +20,8 @@ type SignupResponse struct {
 
 type LoginResponse struct {
 	Response
-	IsAdmin bool `json:"admin"`
+	IsAdmin bool   `json:"admin"`
+	RollNo  string `json:"rollno"`
 }
 
 func Login(w http.ResponseWriter, req *http.Request) {
@@ -67,6 +68,7 @@ func Login(w http.ResponseWriter, req *http.Request) {
 	log.Info(cookie)
 	res.Success = true
 	res.IsAdmin = account.IsAdmin(u.RollNo)
+	res.RollNo = u.RollNo
 	json.NewEncoder(w).Encode(res)
 }
 
@@ -108,7 +110,6 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 
 func CheckUserIsLoggedIn(w http.ResponseWriter, req *http.Request) {
 
-	cors.SetPolicy(&w, req)
 	w.Header().Set("Content-Type", "application/json")
 
 	if req.Method != "POST" {
@@ -128,5 +129,6 @@ func CheckUserIsLoggedIn(w http.ResponseWriter, req *http.Request) {
 	var res LoginResponse
 	res.Success = true
 	res.IsAdmin = account.IsAdmin(requestorRollno)
+	res.RollNo = requestorRollno
 	json.NewEncoder(w).Encode(res)
 }

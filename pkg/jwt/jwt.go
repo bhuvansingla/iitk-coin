@@ -54,7 +54,7 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handle
 			logrus.Error(err)
 			json.NewEncoder(w).Encode(&Response{
 				Success:      false,
-				ErrorMessage: "unauthorized",
+				ErrorMessage: "couldn't find cookie token",
 			})
 			return
 		}
@@ -71,7 +71,7 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handle
 			logrus.Error(err)
 			json.NewEncoder(w).Encode(&Response{
 				Success:      false,
-				ErrorMessage: "unauthorized",
+				ErrorMessage: "couldn't parse token",
 			})
 			return
 		}

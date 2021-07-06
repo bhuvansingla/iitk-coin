@@ -21,10 +21,6 @@ type TransferCoinRequest struct {
 	ToRollNo   string `json:"toRollno"`
 }
 
-type GetCoinBalanceRequest struct {
-	RollNo string `json:"rollno"`
-}
-
 type GetCoinBalanceResponse struct {
 	Response
 	RollNo string `json:"rollno"`
@@ -148,38 +144,48 @@ func TransferCoins(w http.ResponseWriter, r *http.Request) {
 func GetCoinBalance(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 
 	if r.Method != "GET" {
-		var res Response
-		res.Success = false
-		res.ErrorMessage = "only GET method allowed"
-		json.NewEncoder(w).Encode(res)
+		json.NewEncoder(w).Encode(&Response{
+			Success:      false,
+			ErrorMessage: "only GET method allowed",
+		})
 		return
 	}
 
-	var req GetCoinBalanceRequest
-	var res GetCoinBalanceResponse
+	queriedRollno := r.URL.Query().Get("rollno")
 
-	res.RollNo = req.RollNo
-
-	err := json.NewDecoder(r.Body).Decode(&req)
+	requestorRollno, err := jwt.GetRollnoFromRequest(r)
 	if err != nil {
-		res.Success = false
-		res.ErrorMessage = err.Error()
-		json.NewEncoder(w).Encode(res)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	balance, err := account.GetCoinBalanceByRollno(req.RollNo)
+	requestorRole := account.GetAccountRoleByRollno(requestorRollno)
+
+	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollno == queriedRollno) {
+		json.NewEncoder(w).Encode(&Response{
+			Success:      false,
+			ErrorMessage: "you are not authorized to check this wallet ballance",
+		})
+		return
+	}
+
+	balance, err := account.GetCoinBalanceByRollno(queriedRollno)
+
 	if err != nil {
-		res.Success = false
-		res.ErrorMessage = err.Error()
-		json.NewEncoder(w).Encode(res)
+		json.NewEncoder(w).Encode(&Response{
+			Success:      false,
+			ErrorMessage: err.Error(),
+		})
 		return
 	}
 
-	res.Coins = balance
-	res.Success = true
-	json.NewEncoder(w).Encode(res)
+	json.NewEncoder(w).Encode(&GetCoinBalanceResponse{
+		Coins:  balance,
+		RollNo: queriedRollno,
+		Response: Response{
+			Success: true,
+		},
+	})
 }
