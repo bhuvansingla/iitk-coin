@@ -5,13 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/bhuvansingla/iitk-coin/pkg/account"
-	"github.com/bhuvansingla/iitk-coin/pkg/auth"
-	"github.com/bhuvansingla/iitk-coin/pkg/cors"
-	"github.com/bhuvansingla/iitk-coin/pkg/jwt"
+	"github.com/bhuvansingla/iitk-coin/account"
+	"github.com/bhuvansingla/iitk-coin/auth"
 	log "github.com/sirupsen/logrus"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 type SignupResponse struct {
@@ -26,7 +22,7 @@ type LoginResponse struct {
 
 func Login(w http.ResponseWriter, req *http.Request) {
 
-	cors.SetPolicy(&w, req)
+	auth.SetCorsPolicy(&w, req)
 	w.Header().Set("Content-Type", "application/json")
 
 	if req.Method != "POST" {
@@ -120,7 +116,7 @@ func CheckUserIsLoggedIn(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	requestorRollno, err := jwt.GetRollnoFromRequest(req)
+	requestorRollno, err := auth.GetRollnoFromRequest(req)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -131,4 +127,38 @@ func CheckUserIsLoggedIn(w http.ResponseWriter, req *http.Request) {
 	res.IsAdmin = account.IsAdmin(requestorRollno)
 	res.RollNo = requestorRollno
 	json.NewEncoder(w).Encode(res)
+}
+
+func GenerateOtp(w http.ResponseWriter, req *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if req.Method != "POST" {
+		json.NewEncoder(w).Encode(&Response{
+			Success:      false,
+			ErrorMessage: "only POST method allowed",
+		})
+		return
+	}
+
+	requestorRollno, err := auth.GetRollnoFromRequest(req)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	_, err = auth.GenerateOtp(requestorRollno)
+
+	if err != nil {
+		var res Response
+		res.Success = false
+		res.ErrorMessage = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+
+	json.NewEncoder(w).Encode(&Response{
+		Success: true,
+	})
 }

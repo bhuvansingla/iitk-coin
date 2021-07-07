@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/bhuvansingla/iitk-coin/pkg/account"
-	"github.com/bhuvansingla/iitk-coin/pkg/jwt"
-
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/bhuvansingla/iitk-coin/account"
+	"github.com/bhuvansingla/iitk-coin/auth"
 )
 
 type AddCoinRequest struct {
@@ -50,7 +48,7 @@ func AddCoins(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestorRollno, err := jwt.GetRollnoFromRequest(r)
+	requestorRollno, err := auth.GetRollnoFromRequest(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -116,7 +114,7 @@ func TransferCoins(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestorRollno, err := jwt.GetRollnoFromRequest(r)
+	requestorRollno, err := auth.GetRollnoFromRequest(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
@@ -155,7 +153,7 @@ func GetCoinBalance(w http.ResponseWriter, r *http.Request) {
 
 	queriedRollno := r.URL.Query().Get("rollno")
 
-	requestorRollno, err := jwt.GetRollnoFromRequest(r)
+	requestorRollno, err := auth.GetRollnoFromRequest(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return

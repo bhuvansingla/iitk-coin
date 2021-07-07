@@ -4,8 +4,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/bhuvansingla/iitk-coin/pkg/db"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/bhuvansingla/iitk-coin/db"
 	log "github.com/sirupsen/logrus"
 )
 

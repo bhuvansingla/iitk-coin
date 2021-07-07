@@ -3,8 +3,7 @@ package account
 import (
 	"errors"
 
-	"github.com/bhuvansingla/iitk-coin/pkg/db"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/bhuvansingla/iitk-coin/db"
 )
 
 type Role int

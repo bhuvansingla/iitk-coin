@@ -1,4 +1,4 @@
-package jwt
+package auth
 
 import (
 	"encoding/json"
@@ -6,9 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/bhuvansingla/iitk-coin/pkg/cors"
 	jwt "github.com/dgrijalva/jwt-go"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
 )
 
@@ -48,7 +46,7 @@ func GenerateToken(rollno string) (string, error) {
 func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cors.SetPolicy(&w, r)
+		SetCorsPolicy(&w, r)
 		cookie, err := r.Cookie("token")
 		if err != nil {
 			logrus.Error(err)

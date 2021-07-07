@@ -3,9 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/bhuvansingla/iitk-coin/pkg/db"
-	"github.com/bhuvansingla/iitk-coin/pkg/server"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/bhuvansingla/iitk-coin/db"
+	"github.com/bhuvansingla/iitk-coin/server"
 )
 
 func main() {
@@ -14,7 +13,7 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
-	err = db.CreateUserTable()
+	err = db.CreateTables()
 	if err != nil {
 		fmt.Println(err.Error())
 		return
