@@ -18,7 +18,7 @@ func ConnectDB() error {
 }
 
 func CreateTables() error {
-	_, err := DB.Exec("create table if not exists Account (rollno text, name text, password text, coins int)")
+	_, err := DB.Exec("create table if not exists Account (rollno text, name text, password text, coins int, role int)")
 	if err != nil {
 		return err
 	}

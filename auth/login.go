@@ -8,8 +8,8 @@ import (
 )
 
 func Login(u *account.Account) (string, error) {
-	if account.ValidateRollNo(u) != nil {
-		return "", account.ValidateRollNo(u)
+	if account.ValidateRollNo(u.RollNo) != nil {
+		return "", account.ValidateRollNo(u.RollNo)
 	}
 	if !account.UserExists(u.RollNo) {
 		return "", errors.New("account does not exist")

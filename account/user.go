@@ -23,14 +23,14 @@ type Account struct {
 	Role     Role
 }
 
-func Create(account *Account) error {
+func Create(rollno string, hashedPasssword string, name string) error {
 
-	account.Role = NormalUser
+	role := NormalUser
 	stmt, err := db.DB.Prepare("INSERT INTO Account (rollno,name,password,coins,role) VALUES (?,?,?,?,?)")
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(account.RollNo, account.Name, account.Password, account.Coins, account.Role)
+	_, err = stmt.Exec(rollno, name, hashedPasssword, 0, role)
 	if err != nil {
 		return err
 	}
@@ -58,18 +58,18 @@ func GetStoredPassword(account *Account) string {
 	return scannedRow
 }
 
-func ValidateRollNo(account *Account) error {
-	if account.RollNo == "" {
+func ValidateRollNo(rollno string) error {
+	if rollno == "" {
 		return errors.New("empty roll no")
 	}
 	return nil
 }
 
-func ValidatePassword(account *Account) error {
-	if account.Password == "" {
+func ValidatePassword(password string) error {
+	if password == "" {
 		return errors.New("empty password")
 	}
-	if len(account.Password) < 8 {
+	if len(password) < 8 {
 		return errors.New("password too small")
 	}
 	return nil

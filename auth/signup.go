@@ -8,32 +8,39 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func Signup(u *account.Account) error {
-	if account.UserExists(u.RollNo) {
+func Signup(rollno string, password string, otp string) error {
+	if account.UserExists(rollno) {
 		return errors.New("account exists already")
 	}
 
-	err := account.ValidateRollNo(u)
+	err := account.ValidateRollNo(rollno)
 	if err != nil {
 		return err
 	}
 
-	err = account.ValidatePassword(u)
+	err = account.ValidatePassword(password)
 	if err != nil {
 		return err
 	}
 
-	hashedPwd, err := util.HashAndSalt(u.Password)
-	if err != nil {
-		return err
+	ok, err := VerifyOTP(rollno, otp)
+	if !ok {
+		return errors.New("invalid otp")
 	}
-	u.Password = hashedPwd
-
-	err = account.Create(u)
 	if err != nil {
 		return err
 	}
 
-	log.Info("new account created", u.RollNo)
+	hashedPwd, err := util.HashAndSalt(password)
+	if err != nil {
+		return err
+	}
+
+	err = account.Create(rollno, hashedPwd, "User Name")
+	if err != nil {
+		return err
+	}
+
+	log.Info("new account created", rollno)
 	return nil
 }

@@ -10,14 +10,20 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type SignupResponse struct {
-	Response
-}
-
 type LoginResponse struct {
 	Response
 	IsAdmin bool   `json:"admin"`
 	RollNo  string `json:"rollno"`
+}
+
+type SignupRequest struct {
+	Rollno   string `json:"rollno"`
+	Password string `json:"password"`
+	Otp      string `json:"otp"`
+}
+
+type OtpRequest struct {
+	Rollno string `json:"rollno"`
 }
 
 func Login(w http.ResponseWriter, req *http.Request) {
@@ -57,6 +63,7 @@ func Login(w http.ResponseWriter, req *http.Request) {
 		Value:    token,
 		Expires:  time.Now().Add(10 * time.Minute),
 		HttpOnly: true,
+		Path:     "/",
 	}
 
 	http.SetCookie(w, cookie)
@@ -70,8 +77,8 @@ func Login(w http.ResponseWriter, req *http.Request) {
 
 func Signup(w http.ResponseWriter, req *http.Request) {
 
+	auth.SetCorsPolicy(&w, req)
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 
 	if req.Method != "POST" {
 		var res Response
@@ -81,27 +88,31 @@ func Signup(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var res SignupResponse
-	var u account.Account
+	var signupRequest SignupRequest
 
-	err := json.NewDecoder(req.Body).Decode(&u)
+	err := json.NewDecoder(req.Body).Decode(&signupRequest)
 	if err != nil {
-		res.Success = false
-		res.ErrorMessage = err.Error()
-		json.NewEncoder(w).Encode(res)
+		json.NewEncoder(w).Encode(&Response{
+			Success:      false,
+			ErrorMessage: err.Error(),
+		})
 		return
 	}
 
-	err = auth.Signup(&u)
+	err = auth.Signup(signupRequest.Rollno, signupRequest.Password, signupRequest.Otp)
+
 	if err != nil {
-		res.Success = false
-		res.ErrorMessage = err.Error()
-		json.NewEncoder(w).Encode(res)
+		json.NewEncoder(w).Encode(&Response{
+			Success:      false,
+			ErrorMessage: err.Error(),
+		})
 		return
 	}
 
-	res.Success = true
-	json.NewEncoder(w).Encode(res)
+	json.NewEncoder(w).Encode(&Response{
+		Success: true,
+	})
+	return
 }
 
 func CheckUserIsLoggedIn(w http.ResponseWriter, req *http.Request) {
@@ -131,6 +142,7 @@ func CheckUserIsLoggedIn(w http.ResponseWriter, req *http.Request) {
 
 func GenerateOtp(w http.ResponseWriter, req *http.Request) {
 
+	auth.SetCorsPolicy(&w, req)
 	w.Header().Set("Content-Type", "application/json")
 
 	if req.Method != "POST" {
@@ -141,14 +153,23 @@ func GenerateOtp(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	requestorRollno, err := auth.GetRollnoFromRequest(req)
+	var otpRequest OtpRequest
+
+	err := json.NewDecoder(req.Body).Decode(&otpRequest)
+	if err != nil {
+		json.NewEncoder(w).Encode(&Response{
+			Success:      false,
+			ErrorMessage: err.Error(),
+		})
+		return
+	}
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	_, err = auth.GenerateOtp(requestorRollno)
+	_, err = auth.GenerateOtp(otpRequest.Rollno)
 
 	if err != nil {
 		var res Response

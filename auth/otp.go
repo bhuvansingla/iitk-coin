@@ -6,13 +6,19 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/db"
 	"github.com/sirupsen/logrus"
 )
 
 func GenerateOtp(rollno string) (string, error) {
 
-	validOtpExists, err := ValidOtpExists(rollno)
+	err := account.ValidateRollNo(rollno)
+	if err != nil {
+		return "", err
+	}
+
+	validOtpExists, err := validOtpExists(rollno)
 	if err != nil {
 		return "", err
 	}
@@ -26,7 +32,7 @@ func GenerateOtp(rollno string) (string, error) {
 		return "", err
 	}
 
-	otp := randomString()
+	otp := randomOTP()
 	_, err = stmt.Exec(rollno, otp, time.Now(), 0)
 
 	if err != nil {
@@ -36,7 +42,7 @@ func GenerateOtp(rollno string) (string, error) {
 	return otp, nil
 }
 
-func ValidOtpExists(rollno string) (bool, error) {
+func validOtpExists(rollno string) (bool, error) {
 	row := db.DB.QueryRow("SELECT rollno FROM OTPs WHERE rollno=? AND created > datetime('now',  '-20 minute' , 'localtime') AND used IS FALSE", rollno)
 	var tempScan string
 	err := row.Scan(&tempScan)
@@ -49,7 +55,7 @@ func ValidOtpExists(rollno string) (bool, error) {
 	return true, nil
 }
 
-func MarkOtpAsUsed(rollno string) error {
+func markOtpAsUsed(rollno string) error {
 	_, err := db.DB.Exec("UPDATE OTPs SET used=? WHERE rollno=?", 1, rollno)
 	if err != nil {
 		return err
@@ -67,7 +73,7 @@ func VerifyOTP(rollno string, otp string) (bool, error) {
 	if err != nil {
 		return true, err
 	}
-	err = MarkOtpAsUsed(rollno)
+	err = markOtpAsUsed(rollno)
 	return true, err
 }
 
@@ -75,7 +81,7 @@ const charset = "abcdefghijklmnopqrstuvwxyz" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345
 
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-func StringWithCharset(length int, charset string) string {
+func stringWithCharset(length int, charset string) string {
 	b := make([]byte, length)
 	for i := range b {
 		b[i] = charset[seededRand.Intn(len(charset))]
@@ -83,6 +89,6 @@ func StringWithCharset(length int, charset string) string {
 	return string(b)
 }
 
-func randomString() string {
-	return StringWithCharset(10, charset)
+func randomOTP() string {
+	return stringWithCharset(10, charset)
 }
