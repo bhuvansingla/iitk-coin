@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/bhuvansingla/iitk-coin/account"
@@ -98,54 +97,45 @@ func TransferCoins(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if r.Method != "POST" {
-		var res Response
-		res.Success = false
-		res.ErrorMessage = "only POST method allowed"
-		json.NewEncoder(w).Encode(res)
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 
 	var transferCoinRequest TransferCoinRequest
-	var res Response
 
-	err := json.NewDecoder(r.Body).Decode(&transferCoinRequest)
-	if err != nil {
-		res.Success = false
-		res.ErrorMessage = err.Error()
-		json.NewEncoder(w).Encode(res)
+	if err := json.NewDecoder(r.Body).Decode(&transferCoinRequest); err != nil {
+		http.Error(w, "error decoding request body", http.StatusBadRequest)
 		return
 	}
 
 	requestorRollno, err := auth.GetRollnoFromRequest(r)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, "bad cookie", http.StatusBadRequest)
 	}
 
-	ok, err := auth.VerifyOTP(requestorRollno, transferCoinRequest.Otp)
-	if !ok {
-		res.Success = false
-		res.ErrorMessage = errors.New("invalid otp").Error()
-		json.NewEncoder(w).Encode(res)
-		return
-	}
+	err = auth.VerifyOTP(requestorRollno, transferCoinRequest.Otp)
 	if err != nil {
-		res.Success = false
-		res.ErrorMessage = err.Error()
-		json.NewEncoder(w).Encode(res)
+		json.NewEncoder(w).Encode(&Response{
+			Success:      false,
+			ErrorMessage: "could not successfully verify otp",
+		})
 		return
 	}
 
 	err = account.TransferCoins(requestorRollno, transferCoinRequest.ReceiverRollno, transferCoinRequest.NumCoins, transferCoinRequest.Remarks)
 
 	if err != nil {
-		res.Success = false
-		res.ErrorMessage = err.Error()
-		json.NewEncoder(w).Encode(res)
+		json.NewEncoder(w).Encode(&Response{
+			Success:      false,
+			ErrorMessage: err.Error(),
+		})
 		return
 	}
 
-	res.Success = true
-	json.NewEncoder(w).Encode(res)
+	json.NewEncoder(w).Encode(&Response{
+		Success: true,
+	})
+	return
 }
 
 func GetCoinBalance(w http.ResponseWriter, r *http.Request) {

@@ -16,6 +16,11 @@ type LoginResponse struct {
 	RollNo  string `json:"rollno"`
 }
 
+type LoginRequest struct {
+	RollNo   string `json:"rollno"`
+	Password string `json:"password"`
+}
+
 type SignupRequest struct {
 	Rollno   string `json:"rollno"`
 	Password string `json:"password"`
@@ -40,9 +45,9 @@ func Login(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var res LoginResponse
-	var u account.Account
+	var loginRequest LoginRequest
 
-	err := json.NewDecoder(req.Body).Decode(&u)
+	err := json.NewDecoder(req.Body).Decode(&loginRequest)
 	if err != nil {
 		res.Success = false
 		res.ErrorMessage = err.Error()
@@ -50,7 +55,7 @@ func Login(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	token, err := auth.Login(&u)
+	token, err := auth.Login(loginRequest.RollNo, loginRequest.Password)
 	if err != nil {
 		res.Success = false
 		res.ErrorMessage = err.Error()
@@ -70,8 +75,8 @@ func Login(w http.ResponseWriter, req *http.Request) {
 
 	log.Info(cookie)
 	res.Success = true
-	res.IsAdmin = account.IsAdmin(u.RollNo)
-	res.RollNo = u.RollNo
+	res.IsAdmin = account.IsAdmin(loginRequest.RollNo)
+	res.RollNo = loginRequest.RollNo
 	json.NewEncoder(w).Encode(res)
 }
 

@@ -7,19 +7,18 @@ import (
 	"github.com/bhuvansingla/iitk-coin/util"
 )
 
-func Login(u *account.Account) (string, error) {
-	if account.ValidateRollNo(u.RollNo) != nil {
-		return "", account.ValidateRollNo(u.RollNo)
+func Login(rollno string, password string) (token string, err error) {
+	if err = account.ValidateRollNo(rollno); err != nil {
+		return "", err
 	}
-	if !account.UserExists(u.RollNo) {
+	if !account.UserExists(rollno) {
 		return "", errors.New("account does not exist")
 	}
-	if !util.CompareHashAndPassword(account.GetStoredPassword(u), u.Password) {
+	if !util.CompareHashAndPassword(account.GetStoredPassword(rollno), password) {
 		return "", errors.New("passsword does not match")
 	}
-	token, err := GenerateToken(u.RollNo)
-	if err != nil {
+	if token, err = GenerateToken(rollno); err != nil {
 		return "", errors.New("error generating the token")
 	}
-	return token, nil
+	return
 }

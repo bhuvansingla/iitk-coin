@@ -15,18 +15,10 @@ const (
 	CoreTeamMember   Role = 3
 )
 
-type Account struct {
-	RollNo   string
-	Name     string
-	Password string
-	Coins    int
-	Role     Role
-}
-
 func Create(rollno string, hashedPasssword string, name string) error {
 
 	role := NormalUser
-	stmt, err := db.DB.Prepare("INSERT INTO Account (rollno,name,password,coins,role) VALUES (?,?,?,?,?)")
+	stmt, err := db.DB.Prepare("INSERT INTO ACCOUNT (rollno,name,password,coins,role) VALUES (?,?,?,?,?)")
 	if err != nil {
 		return err
 	}
@@ -37,22 +29,22 @@ func Create(rollno string, hashedPasssword string, name string) error {
 	return nil
 }
 
-func UserExists(rollno string) bool {
-	row := db.DB.QueryRow("SELECT rollno FROM Account WHERE rollno=?", rollno)
+func UserExists(rollno string) bool { // handle error
+	row := db.DB.QueryRow("SELECT rollno FROM ACCOUNT WHERE rollno=?", rollno)
 	scannedRow := ""
 	row.Scan(&scannedRow)
 	return scannedRow != ""
 }
 
 func GetAccountRoleByRollno(rollno string) Role {
-	row := db.DB.QueryRow("SELECT role FROM Account WHERE rollno=?", rollno)
+	row := db.DB.QueryRow("SELECT role FROM ACCOUNT WHERE rollno=?", rollno)
 	var role Role
 	row.Scan(&role) // handle error
 	return role
 }
 
-func GetStoredPassword(account *Account) string {
-	row := db.DB.QueryRow("SELECT password FROM Account WHERE rollno=?", account.RollNo)
+func GetStoredPassword(rollno string) string {
+	row := db.DB.QueryRow("SELECT password FROM ACCOUNT WHERE rollno=?", rollno)
 	scannedRow := ""
 	row.Scan(&scannedRow)
 	return scannedRow

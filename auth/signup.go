@@ -23,12 +23,9 @@ func Signup(rollno string, password string, otp string) error {
 		return err
 	}
 
-	ok, err := VerifyOTP(rollno, otp)
-	if !ok {
-		return errors.New("invalid otp")
-	}
+	err = VerifyOTP(rollno, otp)
 	if err != nil {
-		return err
+		return errors.New("could not successfully verify otp")
 	}
 
 	hashedPwd, err := util.HashAndSalt(password)
