@@ -77,10 +77,11 @@ func AddCoins(rollno string, coins int) error {
 	return nil
 }
 
-func TransferCoins(fromRollno string, toRollno string, coins int) error {
+func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks string) error {
+
 	log.SetLevel(log.DebugLevel)
 
-	err := validateCoinValue(coins)
+	err := validateCoinValue(numCoins)
 	if err != nil {
 		return err
 	}
@@ -95,7 +96,7 @@ func TransferCoins(fromRollno string, toRollno string, coins int) error {
 		return err
 	}
 
-	res, err := tx.Exec("UPDATE Account SET coins = coins - ? WHERE rollno = ? AND coins - ? >= 0 AND coins ", coins, fromRollno, coins)
+	res, err := tx.Exec("UPDATE Account SET coins = coins - ? WHERE rollno = ? AND coins - ? >= 0 AND coins ", numCoins, fromRollno, numCoins)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -113,7 +114,7 @@ func TransferCoins(fromRollno string, toRollno string, coins int) error {
 	}
 
 	limit := 1000
-	res, err = tx.Exec("UPDATE Account SET coins = coins + ? WHERE rollno=? AND coins + ? <= ?", coins, toRollno, coins, limit)
+	res, err = tx.Exec("UPDATE Account SET coins = coins + ? WHERE rollno=? AND coins + ? <= ?", numCoins, toRollno, numCoins, limit)
 	if err != nil {
 		tx.Rollback()
 		return err

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/bhuvansingla/iitk-coin/account"
@@ -14,9 +15,10 @@ type AddCoinRequest struct {
 }
 
 type TransferCoinRequest struct {
-	Coins      int    `json:"coins"`
-	FromRollNo string `json:"fromRollno"`
-	ToRollNo   string `json:"toRollno"`
+	NumCoins       int    `json:"numCoins"`
+	ReceiverRollno string `json:"receiverRollno"`
+	Remarks        string `json:"remarks"`
+	Otp            string `json:"otp"`
 }
 
 type GetCoinBalanceResponse struct {
@@ -103,10 +105,10 @@ func TransferCoins(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req TransferCoinRequest
+	var transferCoinRequest TransferCoinRequest
 	var res Response
 
-	err := json.NewDecoder(r.Body).Decode(&req)
+	err := json.NewDecoder(r.Body).Decode(&transferCoinRequest)
 	if err != nil {
 		res.Success = false
 		res.ErrorMessage = err.Error()
@@ -119,14 +121,21 @@ func TransferCoins(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	if requestorRollno != req.FromRollNo {
+	ok, err := auth.VerifyOTP(requestorRollno, transferCoinRequest.Otp)
+	if !ok {
 		res.Success = false
-		res.ErrorMessage = "send from your own wallet lol"
+		res.ErrorMessage = errors.New("invalid otp").Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	if err != nil {
+		res.Success = false
+		res.ErrorMessage = err.Error()
 		json.NewEncoder(w).Encode(res)
 		return
 	}
 
-	err = account.TransferCoins(req.FromRollNo, req.ToRollNo, req.Coins)
+	err = account.TransferCoins(requestorRollno, transferCoinRequest.ReceiverRollno, transferCoinRequest.NumCoins, transferCoinRequest.Remarks)
 
 	if err != nil {
 		res.Success = false
