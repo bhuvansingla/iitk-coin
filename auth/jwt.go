@@ -7,7 +7,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 var privateKey = []byte("SHHHHH!! SECRET HAI!")
@@ -49,7 +49,7 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handle
 		SetCorsPolicy(&w, r)
 		cookie, err := r.Cookie("token")
 		if err != nil {
-			logrus.Error(err)
+			log.Error(err)
 			json.NewEncoder(w).Encode(&Response{
 				Success:      false,
 				ErrorMessage: "couldn't find cookie token",
@@ -66,7 +66,7 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handle
 		//check time
 
 		if err != nil {
-			logrus.Error(err)
+			log.Error(err)
 			json.NewEncoder(w).Encode(&Response{
 				Success:      false,
 				ErrorMessage: "couldn't parse token",

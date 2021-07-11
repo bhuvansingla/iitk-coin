@@ -1,23 +1,24 @@
-package account
+package wallet
 
 import (
 	"database/sql"
 	"errors"
 	"time"
 
+	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/db"
 	log "github.com/sirupsen/logrus"
 )
 
 func GetCoinBalanceByRollno(rollno string) (int, error) {
-	if !UserExists(rollno) {
+	if !account.UserExists(rollno) {
 		return 0, errors.New("user account does not exist")
 	}
 	row := db.DB.QueryRow("SELECT coins FROM ACCOUNT WHERE rollno=?", rollno)
 	var coins int
-	err := row.Scan(&coins)
-	if err != nil {
-		return 0, err
+	if err := row.Scan(&coins); err != nil {
+		log.Error("row scan failed")
+		return 0, errors.New("internal server error")
 	}
 	return coins, nil
 }
@@ -31,14 +32,12 @@ func UpdateCoinBalanceByRollno(tx *sql.Tx, rollno string, coins int) error {
 }
 
 func AddCoins(rollno string, coins int) error {
-	log.SetLevel(log.DebugLevel)
 
-	err := validateCoinValue(coins)
-	if err != nil {
+	if err := validateCoinValue(coins); err != nil {
 		return err
 	}
 
-	if !UserExists(rollno) {
+	if !account.UserExists(rollno) {
 		return errors.New("user account does not exist")
 	}
 
@@ -46,7 +45,9 @@ func AddCoins(rollno string, coins int) error {
 
 	if err != nil {
 		tx.Rollback()
-		return err
+		log.Error(err)
+		return errors.New("transaction failed")
+
 	}
 
 	limit := 1000
@@ -54,25 +55,29 @@ func AddCoins(rollno string, coins int) error {
 	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins + ? WHERE rollno=? AND coins + ? <= ?", coins, rollno, coins, limit)
 	if err != nil {
 		tx.Rollback()
-		return err
+		log.Error(err)
+		return errors.New("transaction failed")
 	}
 
 	rowCnt, err := res.RowsAffected()
 	if err != nil {
 		tx.Rollback()
-		return err
+		log.Error(err)
+		return errors.New("transaction failed")
 	}
 
 	if rowCnt == 0 {
 		tx.Rollback()
-		return errors.New("upper limit exceeded")
+		log.Error(err)
+		return errors.New("transaction failed")
 	}
 
 	err = tx.Commit()
 
 	if err != nil {
 		tx.Rollback()
-		return err
+		log.Error(err)
+		return errors.New("transaction failed")
 	}
 
 	return nil
@@ -85,7 +90,7 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 		return err
 	}
 
-	if !UserExists(fromRollno) || !UserExists(toRollno) {
+	if !account.UserExists(fromRollno) || !account.UserExists(toRollno) {
 		return errors.New("user account does not exist")
 	}
 
