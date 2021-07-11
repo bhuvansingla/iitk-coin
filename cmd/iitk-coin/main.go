@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/bhuvansingla/iitk-coin/db"
+	"github.com/bhuvansingla/iitk-coin/logger"
 	"github.com/bhuvansingla/iitk-coin/server"
 )
 
@@ -18,5 +19,6 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
+	logger.ConfigureLogger()
 	server.StartServer()
 }
