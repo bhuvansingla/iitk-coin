@@ -1,7 +1,6 @@
 package wallet
 
 import (
-	"database/sql"
 	"errors"
 	"time"
 
@@ -9,79 +8,6 @@ import (
 	"github.com/bhuvansingla/iitk-coin/db"
 	log "github.com/sirupsen/logrus"
 )
-
-func GetCoinBalanceByRollno(rollno string) (int, error) {
-	if !account.UserExists(rollno) {
-		return 0, errors.New("user account does not exist")
-	}
-	row := db.DB.QueryRow("SELECT coins FROM ACCOUNT WHERE rollno=?", rollno)
-	var coins int
-	if err := row.Scan(&coins); err != nil {
-		log.Error("row scan failed")
-		return 0, errors.New("internal server error")
-	}
-	return coins, nil
-}
-
-func UpdateCoinBalanceByRollno(tx *sql.Tx, rollno string, coins int) error {
-	_, err := tx.Exec("UPDATE ACCOUNT SET coins=? WHERE rollno=?", coins, rollno)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func AddCoins(rollno string, coins int) error {
-
-	if err := validateCoinValue(coins); err != nil {
-		return err
-	}
-
-	if !account.UserExists(rollno) {
-		return errors.New("user account does not exist")
-	}
-
-	tx, err := db.DB.Begin()
-
-	if err != nil {
-		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
-
-	}
-
-	limit := 1000
-
-	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins + ? WHERE rollno=? AND coins + ? <= ?", coins, rollno, coins, limit)
-	if err != nil {
-		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
-	}
-
-	rowCnt, err := res.RowsAffected()
-	if err != nil {
-		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
-	}
-
-	if rowCnt == 0 {
-		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
-	}
-
-	err = tx.Commit()
-
-	if err != nil {
-		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
-	}
-
-	return nil
-}
 
 func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks string) error {
 
@@ -155,12 +81,5 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 		return errors.New("transaction failed")
 	}
 
-	return nil
-}
-
-func validateCoinValue(coins int) error {
-	if coins <= 0 {
-		return errors.New("invalid coin value")
-	}
 	return nil
 }
