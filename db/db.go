@@ -17,11 +17,33 @@ func ConnectDB() error {
 	return nil
 }
 
-func CreateTables() error {
-	_, err := DB.Exec("create table if not exists Account (rollno text, name text, password text, coins int, role int)")
+func CreateTables() (err error) {
+	err = createAccountTable()
 	if err != nil {
-		return err
+		return
 	}
-	_, err = DB.Exec("create table if not exists OTPs (rollno text, otp text, created timestamp, used boolean)")
-	return err
+	err = createOtpTable()
+	if err != nil {
+		return
+	}
+	err = createTransferHistoryTable()
+	if err != nil {
+		return
+	}
+	return
+}
+
+func createAccountTable() (err error) {
+	_, err = DB.Exec("create table if not exists ACCOUNT (rollno text, name text, password text, coins int, role int)")
+	return
+}
+
+func createOtpTable() (err error) {
+	_, err = DB.Exec("create table if not exists OTP (rollno text, otp text, created timestamp, used boolean)")
+	return
+}
+
+func createTransferHistoryTable() (err error) {
+	_, err = DB.Exec("create table if not exists TRANSFER_HISTORY (fromRollno text, toRollno text, time timestamp, coins int, tax int, remarks text)")
+	return
 }
