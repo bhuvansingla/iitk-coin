@@ -15,7 +15,6 @@ type SignupRequest struct {
 
 func Signup(w http.ResponseWriter, r *http.Request) {
 
-	auth.SetCorsPolicy(&w, r)
 	w.Header().Set("Content-Type", "application/json")
 
 	if r.Method != "POST" {

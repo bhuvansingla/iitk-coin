@@ -43,10 +43,9 @@ func GenerateToken(rollno string) (string, error) {
 	return tokenString, nil
 }
 
-func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handler {
+func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		SetCorsPolicy(&w, r)
+	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("token")
 		if err != nil {
 			log.Error(err)
@@ -78,7 +77,7 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handle
 			endpoint(w, r)
 			return
 		}
-	})
+	}
 }
 
 func GetRollnoFromRequest(r *http.Request) (string, error) {
