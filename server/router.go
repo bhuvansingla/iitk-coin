@@ -16,4 +16,7 @@ func SetRoutes() {
 	http.Handle("/wallet/add", auth.IsAuthorized(handlers.RewardCoins))
 	http.Handle("/wallet/transfer", auth.IsAuthorized(handlers.TransferCoins))
 	http.Handle("/wallet/balance", auth.IsAuthorized(handlers.GetCoinBalance))
+	http.Handle("/wallet/redeem/new", auth.IsAuthorized(handlers.NewRedeem))
+	http.Handle("/wallet/redeem/accept", auth.IsAuthorized(handlers.AcceptRedeem))
+	http.Handle("/wallet/redeem/reject", auth.IsAuthorized(handlers.RejectRedeem))
 }
