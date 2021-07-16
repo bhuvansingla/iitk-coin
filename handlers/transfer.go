@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/auth"
-	"github.com/bhuvansingla/iitk-coin/wallet"
 )
 
 type TransferCoinRequest struct {
@@ -44,7 +44,7 @@ func TransferCoins(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = wallet.TransferCoins(requestorRollno, transferCoinRequest.ReceiverRollno, transferCoinRequest.NumCoins, transferCoinRequest.Remarks)
+	err = account.TransferCoins(requestorRollno, transferCoinRequest.ReceiverRollno, transferCoinRequest.NumCoins, transferCoinRequest.Remarks)
 
 	if err != nil {
 		json.NewEncoder(w).Encode(&Response{

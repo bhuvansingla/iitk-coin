@@ -1,9 +1,8 @@
-package wallet
+package account
 
 import (
 	"errors"
 
-	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/db"
 	log "github.com/sirupsen/logrus"
 )
@@ -14,7 +13,7 @@ func AddCoins(rollno string, coins int) error {
 		return err
 	}
 
-	if !account.UserExists(rollno) {
+	if !UserExists(rollno) {
 		return errors.New("user account does not exist")
 	}
 

@@ -1,10 +1,9 @@
-package wallet
+package account
 
 import (
 	"errors"
 	"time"
 
-	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/db"
 	log "github.com/sirupsen/logrus"
 )
@@ -16,7 +15,7 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 		return err
 	}
 
-	if !account.UserExists(fromRollno) || !account.UserExists(toRollno) {
+	if !UserExists(fromRollno) || !UserExists(toRollno) {
 		return errors.New("user account does not exist")
 	}
 

@@ -6,7 +6,6 @@ import (
 
 	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/auth"
-	"github.com/bhuvansingla/iitk-coin/wallet"
 )
 
 type GetCoinBalanceResponse struct {
@@ -41,7 +40,7 @@ func GetCoinBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	balance, err := wallet.GetCoinBalanceByRollno(queriedRollno)
+	balance, err := account.GetCoinBalanceByRollno(queriedRollno)
 
 	if err != nil {
 		json.NewEncoder(w).Encode(&Response{

@@ -6,7 +6,6 @@ import (
 
 	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/auth"
-	"github.com/bhuvansingla/iitk-coin/wallet"
 )
 
 type NewRedeemRequest struct {
@@ -18,6 +17,11 @@ type NewRedeemRequest struct {
 
 type UpdateRedeemRequest struct {
 	RedeemId int `json:"redeemId"`
+}
+
+type RedeemListResponse struct {
+	Response
+	RedeemList []account.RedeemRequest `json:"redeemList`
 }
 
 func NewRedeem(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +53,7 @@ func NewRedeem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = wallet.NewRedeem(requestorRollno, redeemRequest.NumCoins, redeemRequest.Item)
+	err = account.NewRedeem(requestorRollno, redeemRequest.NumCoins, redeemRequest.Item)
 
 	if err != nil {
 		json.NewEncoder(w).Encode(&Response{
@@ -91,7 +95,7 @@ func AcceptRedeem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = wallet.AcceptRedeem(redeemRequest.RedeemId, requestorRollno)
+	err = account.AcceptRedeem(redeemRequest.RedeemId, requestorRollno)
 
 	if err != nil {
 		json.NewEncoder(w).Encode(&Response{
@@ -133,7 +137,7 @@ func RejectRedeem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = wallet.RejectRedeem(redeemRequest.RedeemId, requestorRollno)
+	err = account.RejectRedeem(redeemRequest.RedeemId, requestorRollno)
 
 	if err != nil {
 		json.NewEncoder(w).Encode(&Response{
@@ -170,7 +174,7 @@ func RedeemListByRollno(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	redeemList, err := wallet.GetRedeemListByRollno(queriedRollno)
+	redeemList, err := account.GetRedeemListByRollno(queriedRollno)
 
 	if err != nil {
 		json.NewEncoder(w).Encode(&Response{
@@ -180,8 +184,10 @@ func RedeemListByRollno(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(&Response{
-		Success:    true,
+	json.NewEncoder(w).Encode(&RedeemListResponse{
+		Response: Response{
+			Success: true,
+		},
 		RedeemList: redeemList,
 	})
 }

@@ -6,7 +6,6 @@ import (
 
 	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/auth"
-	"github.com/bhuvansingla/iitk-coin/wallet"
 )
 
 type RewardRequest struct {
@@ -53,7 +52,7 @@ func RewardCoins(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = wallet.AddCoins(rewardRequest.RollNo, rewardRequest.Coins)
+	err = account.AddCoins(rewardRequest.RollNo, rewardRequest.Coins)
 
 	if err != nil {
 		json.NewEncoder(w).Encode(&Response{

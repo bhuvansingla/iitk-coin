@@ -1,16 +1,15 @@
-package wallet
+package account
 
 import (
 	"database/sql"
 	"errors"
 
-	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/db"
 	log "github.com/sirupsen/logrus"
 )
 
 func GetCoinBalanceByRollno(rollno string) (int, error) {
-	if !account.UserExists(rollno) {
+	if !UserExists(rollno) {
 		return 0, errors.New("user account does not exist")
 	}
 	row := db.DB.QueryRow("SELECT coins FROM ACCOUNT WHERE rollno=?", rollno)
