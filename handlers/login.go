@@ -7,6 +7,7 @@ import (
 
 	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/auth"
+	"github.com/spf13/viper"
 )
 
 type LoginResponse struct {
@@ -46,9 +47,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie := &http.Cookie{
-		Name:     "token",
+		Name:     viper.GetString("JWT.COOKIE_NAME"),
 		Value:    token,
-		Expires:  time.Now().Add(10 * time.Minute),
+		Expires:  time.Now().Add(time.Duration(viper.GetInt("JWT.EXPIRATION_TIME_IN_MIN")) * time.Minute),
 		HttpOnly: true,
 		Path:     "/",
 	}
@@ -65,7 +66,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 func Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     "token",
+		Name:     viper.GetString("JWT.COOKIE_NAME"),
 		Value:    "",
 		Expires:  time.Now(),
 		HttpOnly: true,

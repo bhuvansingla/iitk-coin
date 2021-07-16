@@ -2,14 +2,20 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/spf13/viper"
 )
 
 var DB *sql.DB
 
 func ConnectDB() error {
-	db, err := sql.Open("sqlite3", "iitkcoin.db")
+	name := viper.GetString("DATABASE.NAME")
+	user := viper.GetString("DATABASE.USER")
+	password := viper.GetString("DATABASE.PASS")
+	dataSource := fmt.Sprintf("%s?_auth&_auth_user=%s&_auth_pass=%s", name, user, password)
+	db, err := sql.Open("sqlite3", dataSource)
 	if err != nil {
 		return err
 	}

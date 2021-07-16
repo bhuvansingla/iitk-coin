@@ -6,6 +6,7 @@ import (
 
 	"github.com/bhuvansingla/iitk-coin/db"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks string) error {
@@ -46,7 +47,7 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 		return errors.New("transaction falied")
 	}
 
-	limit := 1000
+	limit := viper.GetInt("WALLET.UPPER_COIN_LIMIT")
 	numCoinsToAdd := numCoins - calculateTax(fromRollno, toRollno, numCoins)
 	res, err = tx.Exec("UPDATE ACCOUNT SET coins = coins + ? WHERE rollno=? AND coins + ? <= ?", numCoinsToAdd, toRollno, numCoinsToAdd, limit)
 	if err != nil {
@@ -86,8 +87,8 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 
 func calculateTax(rollno1 string, rollno2 string, numCoins int) (tax int) {
 	if rollno1[:2] == rollno2[:2] {
-		return (numCoins * 2 / 100)
+		return (numCoins * viper.GetInt("TAX.INTER_BATCH") / 100)
 	} else {
-		return (numCoins * 33 / 100)
+		return (numCoins * viper.GetInt("TAX.INTRA_BATCH") / 100)
 	}
 }

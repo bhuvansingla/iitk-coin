@@ -1,0 +1,26 @@
+SERVER:
+  HOST: localhost
+  PORT: 8000
+
+DATABASE:
+  NAME: "iitkcoin.db"
+  USER: "dbuser"
+  PASS: "dbpassword"
+
+WALLET: 
+  UPPER_COIN_LIMIT: 10000
+
+TAX:
+  INTER_BATCH: 2
+  INTRA_BATCH: 33
+
+JWT:
+  PRIVATE_KEY: "this-is-a-secret"
+  EXPIRATION_TIME_IN_MIN: 10
+  COOKIE_NAME: "token"
+
+LOGGER:
+  LOG_LEVEL: 5 # Error: 2, Warn: 3, Info: 4, Debug: 5
+
+FRONTEND:
+  URL: "http://localhost:3000"
