@@ -47,7 +47,8 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 	}
 
 	limit := 1000
-	res, err = tx.Exec("UPDATE ACCOUNT SET coins = coins + ? WHERE rollno=? AND coins + ? <= ?", numCoins, toRollno, numCoins, limit)
+	numCoinsToAdd := numCoins - calculateTax(fromRollno, toRollno, numCoins)
+	res, err = tx.Exec("UPDATE ACCOUNT SET coins = coins + ? WHERE rollno=? AND coins + ? <= ?", numCoinsToAdd, toRollno, numCoinsToAdd, limit)
 	if err != nil {
 		tx.Rollback()
 		log.Error(err)
@@ -81,4 +82,12 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 	}
 
 	return nil
+}
+
+func calculateTax(rollno1 string, rollno2 string, numCoins int) (tax int) {
+	if rollno1[:2] == rollno2[:2] {
+		return (numCoins * 2 / 100)
+	} else {
+		return (numCoins * 33 / 100)
+	}
 }
