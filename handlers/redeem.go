@@ -147,3 +147,41 @@ func RejectRedeem(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 	})
 }
+
+func RedeemListByRollno(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+
+	queriedRollno := r.URL.Query().Get("rollno")
+
+	requestorRollno, err := auth.GetRollnoFromRequest(r)
+	if err != nil {
+		http.Error(w, "bad cookie", http.StatusBadRequest)
+	}
+
+	requestorRole := account.GetAccountRoleByRollno(requestorRollno)
+
+	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollno != queriedRollno) {
+		http.Error(w, "you are not authorized to view the requested redeem requests", http.StatusUnauthorized)
+		return
+	}
+
+	redeemList, err := wallet.GetRedeemListByRollno(queriedRollno)
+
+	if err != nil {
+		json.NewEncoder(w).Encode(&Response{
+			Success:      false,
+			ErrorMessage: err.Error(),
+		})
+		return
+	}
+
+	json.NewEncoder(w).Encode(&Response{
+		Success:    true,
+		RedeemList: redeemList,
+	})
+}

@@ -18,8 +18,12 @@ const (
 )
 
 type RedeemRequest struct {
-	RollNo   string `field:"rollno"`
-	NumCoins int    `field:"coins"`
+	RollNo   string       `field:"rollno"`
+	Id       string       `field:"id"`
+	NumCoins int          `field:"coins"`
+	Time     time.Time    `field:"time"`
+	Item     string       `field:"item"`
+	Status   RedeemStatus `field:"status"`
 }
 
 func NewRedeem(rollno string, numCoins int, item string) error {
@@ -91,4 +95,23 @@ func RejectRedeem(id int, adminRollno string) error {
 		return err
 	}
 	return nil
+}
+
+func GetRedeemListByRollno(rollno string) ([]RedeemRequest, error) {
+	rows, err := db.DB.Query("SELECT * FROM REDEEM_REQUEST WHERE rollno=?", rollno)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var redeemRequests []RedeemRequest
+	for rows.Next() {
+		var redeemRequest RedeemRequest
+		err := rows.Scan(&redeemRequest.Id, &redeemRequest.RollNo, &redeemRequest.NumCoins, &redeemRequest.Time, &redeemRequest.Item, &redeemRequest.Status)
+		if err != nil {
+			return nil, err
+		}
+		redeemRequests = append(redeemRequests, redeemRequest)
+	}
+	return redeemRequests, nil
 }
