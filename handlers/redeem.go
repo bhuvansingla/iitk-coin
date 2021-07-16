@@ -21,7 +21,7 @@ type UpdateRedeemRequest struct {
 
 type RedeemListResponse struct {
 	Response
-	RedeemList []account.RedeemRequest `json:"redeemList`
+	RedeemList []account.RedeemRequest `json:"redeemList"`
 }
 
 func NewRedeem(w http.ResponseWriter, r *http.Request) {
