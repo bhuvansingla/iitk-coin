@@ -13,6 +13,7 @@ func SetRoutes() {
 	http.HandleFunc("/auth/signup", CORS(handlers.Signup))
 	http.HandleFunc("/auth/check", CORS(auth.IsAuthorized(handlers.CheckLogin)))
 	http.HandleFunc("/auth/otp", CORS(handlers.GenerateOtp))
+	http.HandleFunc("/auth/logout", CORS(handlers.Logout))
 	http.HandleFunc("/wallet/add", CORS(auth.IsAuthorized(handlers.RewardCoins)))
 	http.HandleFunc("/wallet/transfer", CORS(auth.IsAuthorized(handlers.TransferCoins)))
 	http.HandleFunc("/wallet/balance", CORS(auth.IsAuthorized(handlers.GetCoinBalance)))

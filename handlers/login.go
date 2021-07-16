@@ -62,3 +62,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		RollNo:  loginRequest.RollNo,
 	})
 }
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    "",
+		Expires:  time.Now(),
+		HttpOnly: true,
+		Path:     "/",
+	})
+}
