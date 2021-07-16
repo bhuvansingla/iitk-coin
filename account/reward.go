@@ -3,7 +3,7 @@ package account
 import (
 	"errors"
 
-	"github.com/bhuvansingla/iitk-coin/db"
+	"github.com/bhuvansingla/iitk-coin/database"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -17,7 +17,7 @@ func AddCoins(rollno string, coins int) error {
 		return errors.New("user account does not exist")
 	}
 
-	tx, err := db.DB.Begin()
+	tx, err := database.DB.Begin()
 
 	if err != nil {
 		tx.Rollback()

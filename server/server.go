@@ -7,10 +7,15 @@ import (
 	"github.com/spf13/viper"
 )
 
-func StartServer() {
-	SetRoutes()
+func Start() (err error) {
+
+	setRoutes()
+
 	host := viper.GetString("SERVER.HOST")
 	port := viper.GetString("SERVER.PORT")
 	address := fmt.Sprintf("%s:%s", host, port)
-	http.ListenAndServe(address, nil)
+
+	err = http.ListenAndServe(address, nil)
+
+	return err
 }

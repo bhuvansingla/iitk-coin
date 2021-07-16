@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/bhuvansingla/iitk-coin/db"
+	"github.com/bhuvansingla/iitk-coin/database"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -12,7 +12,7 @@ func GetCoinBalanceByRollno(rollno string) (int, error) {
 	if !UserExists(rollno) {
 		return 0, errors.New("user account does not exist")
 	}
-	row := db.DB.QueryRow("SELECT coins FROM ACCOUNT WHERE rollno=?", rollno)
+	row := database.DB.QueryRow("SELECT coins FROM ACCOUNT WHERE rollno=?", rollno)
 	var coins int
 	if err := row.Scan(&coins); err != nil {
 		log.Error("row scan failed")

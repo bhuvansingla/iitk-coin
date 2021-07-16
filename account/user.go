@@ -3,7 +3,7 @@ package account
 import (
 	"errors"
 
-	"github.com/bhuvansingla/iitk-coin/db"
+	"github.com/bhuvansingla/iitk-coin/database"
 )
 
 type Role int
@@ -18,7 +18,7 @@ const (
 func Create(rollno string, hashedPasssword string, name string) error {
 
 	role := NormalUser
-	stmt, err := db.DB.Prepare("INSERT INTO ACCOUNT (rollno,name,password,coins,role) VALUES (?,?,?,?,?)")
+	stmt, err := database.DB.Prepare("INSERT INTO ACCOUNT (rollno,name,password,coins,role) VALUES (?,?,?,?,?)")
 	if err != nil {
 		return err
 	}
@@ -30,21 +30,21 @@ func Create(rollno string, hashedPasssword string, name string) error {
 }
 
 func UserExists(rollno string) bool { // handle error
-	row := db.DB.QueryRow("SELECT rollno FROM ACCOUNT WHERE rollno=?", rollno)
+	row := database.DB.QueryRow("SELECT rollno FROM ACCOUNT WHERE rollno=?", rollno)
 	scannedRow := ""
 	row.Scan(&scannedRow)
 	return scannedRow != ""
 }
 
 func GetAccountRoleByRollno(rollno string) Role {
-	row := db.DB.QueryRow("SELECT role FROM ACCOUNT WHERE rollno=?", rollno)
+	row := database.DB.QueryRow("SELECT role FROM ACCOUNT WHERE rollno=?", rollno)
 	var role Role
 	row.Scan(&role) // handle error
 	return role
 }
 
 func GetStoredPassword(rollno string) string {
-	row := db.DB.QueryRow("SELECT password FROM ACCOUNT WHERE rollno=?", rollno)
+	row := database.DB.QueryRow("SELECT password FROM ACCOUNT WHERE rollno=?", rollno)
 	scannedRow := ""
 	row.Scan(&scannedRow)
 	return scannedRow

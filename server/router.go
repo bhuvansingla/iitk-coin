@@ -7,7 +7,7 @@ import (
 	"github.com/bhuvansingla/iitk-coin/handlers"
 )
 
-func SetRoutes() {
+func setRoutes() {
 	http.HandleFunc("/", CORS(handlers.Index))
 	http.HandleFunc("/auth/login", CORS(handlers.Login))
 	http.HandleFunc("/auth/signup", CORS(handlers.Signup))

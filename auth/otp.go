@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/bhuvansingla/iitk-coin/account"
-	"github.com/bhuvansingla/iitk-coin/db"
+	"github.com/bhuvansingla/iitk-coin/database"
 	"github.com/bhuvansingla/iitk-coin/util"
 	log "github.com/sirupsen/logrus"
 )
@@ -28,7 +28,7 @@ func GenerateOtp(rollno string) (string, error) {
 
 	otp := util.RandomOTP()
 
-	stmt, err := db.DB.Prepare("INSERT INTO OTP (rollno, otp, created, used) VALUES (?,?,?,?)")
+	stmt, err := database.DB.Prepare("INSERT INTO OTP (rollno, otp, created, used) VALUES (?,?,?,?)")
 
 	if err != nil {
 		log.Error(err)
@@ -44,7 +44,7 @@ func GenerateOtp(rollno string) (string, error) {
 }
 
 func validOtpExists(rollno string) (bool, error) {
-	row := db.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=? AND created > datetime('now',  '-20 minute' , 'localtime') AND used IS FALSE", rollno)
+	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=? AND created > datetime('now',  '-20 minute' , 'localtime') AND used IS FALSE", rollno)
 	var tempScan string
 	err := row.Scan(&tempScan)
 	if err == sql.ErrNoRows {
@@ -57,7 +57,7 @@ func validOtpExists(rollno string) (bool, error) {
 }
 
 func markOtpAsUsed(rollno string) error {
-	_, err := db.DB.Exec("UPDATE OTP SET used=? WHERE rollno=?", 1, rollno)
+	_, err := database.DB.Exec("UPDATE OTP SET used=? WHERE rollno=?", 1, rollno)
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func markOtpAsUsed(rollno string) error {
 }
 
 func VerifyOTP(rollno string, otp string) (err error) {
-	row := db.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=? AND otp=? AND created > datetime('now',  '-20 minute' , 'localtime') AND used IS FALSE", rollno, otp)
+	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=? AND otp=? AND created > datetime('now',  '-20 minute' , 'localtime') AND used IS FALSE", rollno, otp)
 	var tempScan string
 	err = row.Scan(&tempScan)
 	if err != nil {

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/bhuvansingla/iitk-coin/db"
+	"github.com/bhuvansingla/iitk-coin/database"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -27,7 +27,7 @@ type RedeemRequest struct {
 }
 
 func NewRedeem(rollno string, numCoins int, item string) error {
-	stmt, err := db.DB.Prepare("INSERT INTO REDEEM_REQUEST (rollno,coins,time,status,item) VALUES (?,?,?,?,?)")
+	stmt, err := database.DB.Prepare("INSERT INTO REDEEM_REQUEST (rollno,coins,time,status,item) VALUES (?,?,?,?,?)")
 	if err != nil {
 		return err
 	}
@@ -41,13 +41,13 @@ func NewRedeem(rollno string, numCoins int, item string) error {
 func AcceptRedeem(id int, adminRollno string) error {
 
 	var redeemRequest RedeemRequest
-	err := db.DB.QueryRow("SELECT rollno, coins FROM REDEEM_REQUEST WHERE id=?", id).Scan(&redeemRequest)
+	err := database.DB.QueryRow("SELECT rollno, coins FROM REDEEM_REQUEST WHERE id=?", id).Scan(&redeemRequest)
 	if err != nil {
 		log.Error(err)
 		return errors.New("internal server error")
 	}
 
-	tx, err := db.DB.Begin()
+	tx, err := database.DB.Begin()
 	if err != nil {
 		tx.Rollback()
 		log.Error(err)
@@ -86,7 +86,7 @@ func AcceptRedeem(id int, adminRollno string) error {
 }
 
 func RejectRedeem(id int, adminRollno string) error {
-	stmt, err := db.DB.Prepare("UPDATE REDEEM_REQUEST SET (status,actionByRollno) VALUES (?,?) WHERE id=?")
+	stmt, err := database.DB.Prepare("UPDATE REDEEM_REQUEST SET (status,actionByRollno) VALUES (?,?) WHERE id=?")
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func RejectRedeem(id int, adminRollno string) error {
 }
 
 func GetRedeemListByRollno(rollno string) ([]RedeemRequest, error) {
-	rows, err := db.DB.Query("SELECT * FROM REDEEM_REQUEST WHERE rollno=?", rollno)
+	rows, err := database.DB.Query("SELECT * FROM REDEEM_REQUEST WHERE rollno=?", rollno)
 	if err != nil {
 		return nil, err
 	}

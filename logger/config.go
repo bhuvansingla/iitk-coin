@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func ConfigureLogger() {
+func init() {
 	logrus.SetReportCaller(true)
 	logrus.SetLevel(logrus.Level(viper.GetInt("LOGGER.LOG_LEVEL")))
 }

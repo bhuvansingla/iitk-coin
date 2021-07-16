@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/bhuvansingla/iitk-coin/db"
+	"github.com/bhuvansingla/iitk-coin/database"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -20,7 +20,7 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 		return errors.New("user account does not exist")
 	}
 
-	tx, err := db.DB.Begin()
+	tx, err := database.DB.Begin()
 	if err != nil {
 		tx.Rollback()
 		log.Error(err)
