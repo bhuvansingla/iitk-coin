@@ -1,5 +1,5 @@
 SERVER:
-  HOST: localhost
+  HOST: 0.0.0.0
   PORT: 8000
 
 DATABASE:
@@ -7,7 +7,7 @@ DATABASE:
   USER: "dbuser"
   PASS: "dbpassword"
 
-WALLET: 
+WALLET:
   UPPER_COIN_LIMIT: 10000
 
 TAX:
