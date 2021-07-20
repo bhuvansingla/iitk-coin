@@ -24,12 +24,12 @@ func Connect() (err error) {
 		return
 	}
 
+	DB = db
+
 	err = createTables()
 	if err != nil {
 		return
 	}
-
-	DB = db
 
 	return
 }
