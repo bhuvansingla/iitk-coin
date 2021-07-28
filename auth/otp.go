@@ -7,6 +7,7 @@ import (
 
 	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/database"
+	"github.com/bhuvansingla/iitk-coin/mail"
 	"github.com/bhuvansingla/iitk-coin/util"
 	log "github.com/sirupsen/logrus"
 )
@@ -39,6 +40,13 @@ func GenerateOtp(rollno string) (string, error) {
 		log.Error(err)
 		return "", errors.New("internal server error")
 	}
+
+	err = mail.SendOTP(rollno, otp)
+	if err != nil {
+		log.Error(err)
+		return "", errors.New("internal server error")
+	}
+
 	log.Info(otp)
 	return otp, nil
 }
