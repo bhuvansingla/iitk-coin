@@ -4,8 +4,6 @@ SERVER:
 
 DATABASE:
   NAME: "iitkcoin.db"
-  USER: "dbuser"
-  PASS: "dbpassword"
 
 WALLET:
   UPPER_COIN_LIMIT: 10000
