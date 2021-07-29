@@ -5,7 +5,9 @@
 ![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/bhuvansingla/iitk-coin)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bhuvansingla/iitk-coin/go?label=build)
 
-**IITK Coin** is a reward-based pseudo-currency system for the IIT Kanpur campus junta.
+**IITK Coin** is a reward-based pseudo-currency system for the IIT Kanpur campus junta. 
+
+Detailed vision and regulation rules of this currency are documented in the wiki [here](https://github.com/bhuvansingla/iitk-coin/wiki/Vision-&-Regulation-Rules).
 
 ## Build and Run
 
