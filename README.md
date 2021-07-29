@@ -5,3 +5,22 @@
 
 IITK Coin is a reward-based pseudo-currency system for the IIT Kanpur campus junta.
 
+## Build and Run
+
+``` bash
+
+# Create the directories if they don't exist already.
+cd $GOPATH/src/github.com/bhuvansingla/
+
+# Clone the repository inside.
+git clone git@github.com:bhuvansingla/iitk-coin.git
+ 
+cd ./iitk-coin
+
+# Build the project.
+go build -o iitk-coin cmd/iitk-coin/main.go
+
+# Run it.
+./iitk-coin
+
+```
