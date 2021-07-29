@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/bhuvansingla/iitk-coin/auth"
+	"github.com/bhuvansingla/iitk-coin/errors"
 )
 
 type SignupRequest struct {
@@ -13,37 +14,23 @@ type SignupRequest struct {
 	Otp      string `json:"otp"`
 }
 
-func Signup(w http.ResponseWriter, r *http.Request) {
-
-	w.Header().Set("Content-Type", "application/json")
+func Signup(w http.ResponseWriter, r *http.Request) error {
 
 	if r.Method != "POST" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
+		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
 	var signupRequest SignupRequest
 
-	err := json.NewDecoder(r.Body).Decode(&signupRequest)
-	if err != nil {
-		json.NewEncoder(w).Encode(&Response{
-			Success:      false,
-			ErrorMessage: err.Error(),
-		})
-		return
+	if err := json.NewDecoder(r.Body).Decode(&signupRequest); err != nil {
+		return errors.NewHTTPError(err, http.StatusBadRequest, "error decoding request body")
 	}
 
-	err = auth.Signup(signupRequest.Rollno, signupRequest.Password, signupRequest.Otp)
+	err := auth.Signup(signupRequest.Rollno, signupRequest.Password, signupRequest.Otp)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(&Response{
-			Success:      false,
-			ErrorMessage: err.Error(),
-		})
-		return
+		return err
 	}
 
-	json.NewEncoder(w).Encode(&Response{
-		Success: true,
-	})
+	return nil
 }

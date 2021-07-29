@@ -6,55 +6,50 @@ import (
 
 	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/auth"
+	"github.com/bhuvansingla/iitk-coin/errors"
 )
 
 type GetCoinBalanceResponse struct {
-	Response
 	RollNo string `json:"rollno"`
 	Coins  int    `json:"coins"`
 }
 
-func GetCoinBalance(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func GetCoinBalance(w http.ResponseWriter, r *http.Request) error {
 
 	if r.Method != "GET" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
+		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
 	queriedRollno := r.URL.Query().Get("rollno")
 
 	if err := account.ValidateRollNo(queriedRollno); err != nil {
-		http.Error(w, "rollno validation failed", http.StatusBadRequest)
+		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid rollno")
 	}
 
 	requestorRollno, err := auth.GetRollnoFromRequest(r)
 	if err != nil {
-		http.Error(w, "bad cookie", http.StatusBadRequest)
+		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
 	}
 
 	requestorRole := account.GetAccountRoleByRollno(requestorRollno)
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollno == queriedRollno) {
-		http.Error(w, "you are not authorized to read this account balance", http.StatusUnauthorized)
-		return
+		return errors.NewHTTPError(nil, http.StatusUnauthorized, "You are not authorized to read this account balance")
+	}
+
+	if !account.UserExists(queriedRollno) {
+		return errors.NewHTTPError(nil, http.StatusBadRequest, "user account does not exist")
 	}
 
 	balance, err := account.GetCoinBalanceByRollno(queriedRollno)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(&Response{
-			Success:      false,
-			ErrorMessage: err.Error(),
-		})
-		return
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	json.NewEncoder(w).Encode(&GetCoinBalanceResponse{
 		Coins:  balance,
 		RollNo: queriedRollno,
-		Response: Response{
-			Success: true,
-		},
 	})
+	return nil
 }

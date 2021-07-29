@@ -1,31 +1,29 @@
 package auth
 
 import (
-	"errors"
+	"net/http"
 
 	"github.com/bhuvansingla/iitk-coin/account"
+	"github.com/bhuvansingla/iitk-coin/errors"
 	"github.com/bhuvansingla/iitk-coin/util"
 	log "github.com/sirupsen/logrus"
 )
 
 func Signup(rollno string, password string, otp string) error {
 	if account.UserExists(rollno) {
-		return errors.New("account exists already")
+		return errors.NewHTTPError(nil, http.StatusBadRequest, "account exists already")
 	}
 
-	err := account.ValidateRollNo(rollno)
-	if err != nil {
+	if err := account.ValidateRollNo(rollno); err != nil {
 		return err
 	}
 
-	err = account.ValidatePassword(password)
-	if err != nil {
+	if err := account.ValidatePassword(password); err != nil {
 		return err
 	}
 
-	err = VerifyOTP(rollno, otp)
-	if err != nil {
-		return errors.New("could not successfully verify otp")
+	if err := VerifyOTP(rollno, otp); err != nil {
+		return err
 	}
 
 	hashedPwd, err := util.HashAndSalt(password)
@@ -38,6 +36,7 @@ func Signup(rollno string, password string, otp string) error {
 		return err
 	}
 
-	log.Info("new account created", rollno)
+	log.Info("A new account was created with roll no ", rollno)
+
 	return nil
 }

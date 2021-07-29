@@ -2,53 +2,49 @@ package auth
 
 import (
 	"database/sql"
-	"errors"
+	"net/http"
 	"time"
 
 	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/database"
+	"github.com/bhuvansingla/iitk-coin/errors"
 	"github.com/bhuvansingla/iitk-coin/mail"
 	"github.com/bhuvansingla/iitk-coin/util"
 	log "github.com/sirupsen/logrus"
 )
 
-func GenerateOtp(rollno string) (string, error) {
+func GenerateOtp(rollno string) error {
 
 	if err := account.ValidateRollNo(rollno); err != nil {
-		return "", err
+		return err
 	}
 
 	validOtpExists, err := validOtpExists(rollno)
 	if err != nil {
-		log.Error(err)
-		return "", errors.New("internal server error")
+		return err
 	}
 	if validOtpExists {
-		return "", errors.New("otp exists already")
+		return errors.NewHTTPError(nil, http.StatusTooManyRequests, "OTP already sent. Please wait for some time.")
 	}
 
 	otp := util.RandomOTP()
 
 	stmt, err := database.DB.Prepare("INSERT INTO OTP (rollno, otp, created, used) VALUES (?,?,?,?)")
-
 	if err != nil {
-		log.Error(err)
-		return "", errors.New("internal server error")
-	}
-	_, err = stmt.Exec(rollno, otp, time.Now(), 0)
-	if err != nil {
-		log.Error(err)
-		return "", errors.New("internal server error")
+		return err
 	}
 
-	err = mail.SendOTP(rollno, otp)
-	if err != nil {
-		log.Error(err)
-		return "", errors.New("internal server error")
+	if _, err = stmt.Exec(rollno, otp, time.Now(), 0); err != nil {
+		return err
+	}
+
+	if err = mail.SendOTP(rollno, otp); err != nil {
+		return err
 	}
 
 	log.Info(otp)
-	return otp, nil
+
+	return nil
 }
 
 func validOtpExists(rollno string) (bool, error) {
@@ -78,6 +74,9 @@ func VerifyOTP(rollno string, otp string) (err error) {
 	err = row.Scan(&tempScan)
 	if err != nil {
 		return
+	}
+	if err == sql.ErrNoRows {
+		return errors.NewHTTPError(nil, http.StatusUnauthorized, "Invalid OTP")
 	}
 	err = markOtpAsUsed(rollno)
 	return

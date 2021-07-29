@@ -1,11 +1,11 @@
 package account
 
 import (
-	"errors"
+	"net/http"
 	"time"
 
 	"github.com/bhuvansingla/iitk-coin/database"
-	log "github.com/sirupsen/logrus"
+	"github.com/bhuvansingla/iitk-coin/errors"
 	"github.com/spf13/viper"
 )
 
@@ -17,43 +17,39 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 	}
 
 	if !UserExists(fromRollno) || !UserExists(toRollno) {
-		return errors.New("user account does not exist")
+		return errors.NewHTTPError(nil, http.StatusBadRequest, "user account does not exist")
 	}
 
 	tx, err := database.DB.Begin()
 	if err != nil {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return err
 	}
 
 	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins - ? WHERE rollno = ? AND coins - ? >= 0 AND coins", numCoins, fromRollno, numCoins)
 	if err != nil {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return err
 	}
 
 	rowCnt, err := res.RowsAffected()
 	if err != nil {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return err
 	}
 
 	if rowCnt == 0 {
 		tx.Rollback()
-		log.Error(errors.New("no row changed"))
-		return errors.New("transaction falied")
+		return errors.NewHTTPError(nil, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	limit := viper.GetInt("WALLET.UPPER_COIN_LIMIT")
 	numCoinsToAdd := numCoins - calculateTax(fromRollno, toRollno, numCoins)
+
 	res, err = tx.Exec("UPDATE ACCOUNT SET coins = coins + ? WHERE rollno=? AND coins + ? <= ?", numCoinsToAdd, toRollno, numCoinsToAdd, limit)
 	if err != nil {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return err
 	}
 
 	rowCnt, err = res.RowsAffected()
@@ -64,22 +60,20 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 
 	if rowCnt == 0 {
 		tx.Rollback()
-		log.Error(errors.New("no row changed"))
-		return errors.New("transaction falied")
+		return errors.NewHTTPError(nil, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
-	log.Info(fromRollno, toRollno, time.Now(), numCoins, 0, remarks)
+
 	_, err = tx.Exec("INSERT INTO TRANSFER_HISTORY (fromRollno, toRollno, time, coins, tax, remarks) VALUES (?,?,?,?,?,?)", fromRollno, toRollno, time.Now(), numCoins, 0, remarks)
+
 	if err != nil {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return err
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return err
 	}
 
 	return nil

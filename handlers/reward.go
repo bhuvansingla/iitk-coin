@@ -6,6 +6,7 @@ import (
 
 	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/auth"
+	"github.com/bhuvansingla/iitk-coin/errors"
 )
 
 type RewardRequest struct {
@@ -13,56 +14,41 @@ type RewardRequest struct {
 	RollNo string `json:"rollno"`
 }
 
-func RewardCoins(w http.ResponseWriter, r *http.Request) {
-
-	w.Header().Set("Content-Type", "application/json")
+func RewardCoins(w http.ResponseWriter, r *http.Request) error {
 
 	if r.Method != "POST" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
+		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
 	var rewardRequest RewardRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&rewardRequest); err != nil {
-		http.Error(w, "error decoding request body", http.StatusBadRequest)
-		return
+		return errors.NewHTTPError(err, http.StatusBadRequest, "error decoding request body")
 	}
 
 	requestorRollno, err := auth.GetRollnoFromRequest(r)
 	if err != nil {
-		http.Error(w, "bad cookie", http.StatusBadRequest)
+		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
 	}
 
 	requestorRole := account.GetAccountRoleByRollno(requestorRollno)
 	beneficiaryRole := account.GetAccountRoleByRollno(rewardRequest.RollNo)
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRole == account.CoreTeamMember) {
-		http.Error(w, "you don't have permission to add coins to the requested acccount", http.StatusUnauthorized)
-		return
+		return errors.NewHTTPError(nil, http.StatusUnauthorized, "you don't have permission to add coins to the requested acccount")
 	}
 
 	if beneficiaryRole == account.GeneralSecretary || beneficiaryRole == account.AssociateHead {
-		http.Error(w, "not possible to add coins to the requested acccount", http.StatusUnauthorized)
-		return
+		return errors.NewHTTPError(nil, http.StatusUnauthorized, "not possible to add coins to the requested acccount")
 	}
 
 	if beneficiaryRole == account.CoreTeamMember && !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead) {
-		http.Error(w, "only gensec/ah can add coins to this account", http.StatusUnauthorized)
-		return
+		return errors.NewHTTPError(nil, http.StatusUnauthorized, "only gensec/ah can add coins to this account")
 	}
 
-	err = account.AddCoins(rewardRequest.RollNo, rewardRequest.Coins)
-
-	if err != nil {
-		json.NewEncoder(w).Encode(&Response{
-			Success:      false,
-			ErrorMessage: err.Error(),
-		})
-		return
+	if err = account.AddCoins(rewardRequest.RollNo, rewardRequest.Coins); err != nil {
+		return err
 	}
 
-	json.NewEncoder(w).Encode(&Response{
-		Success: true,
-	})
+	return nil
 }

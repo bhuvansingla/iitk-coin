@@ -6,33 +6,31 @@ import (
 
 	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/auth"
+	"github.com/bhuvansingla/iitk-coin/errors"
 )
 
 type CheckLoginResponse struct {
-	Response
 	IsAdmin bool   `json:"admin"`
 	RollNo  string `json:"rollno"`
 }
 
-func CheckLogin(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func CheckLogin(w http.ResponseWriter, r *http.Request) error {
 
 	if r.Method != "POST" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
+		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
 	requestorRollno, err := auth.GetRollnoFromRequest(r)
 	if err != nil {
-		http.Error(w, "bad cookie", http.StatusBadRequest)
+		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
 	}
 
 	isAdmin := account.IsAdmin(requestorRollno)
+
 	json.NewEncoder(w).Encode(&CheckLoginResponse{
-		RollNo: requestorRollno,
-		Response: Response{
-			Success: true,
-		},
+		RollNo:  requestorRollno,
 		IsAdmin: isAdmin,
 	})
+
+	return nil
 }

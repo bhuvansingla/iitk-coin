@@ -6,6 +6,7 @@ import (
 
 	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/auth"
+	"github.com/bhuvansingla/iitk-coin/errors"
 )
 
 type NewRedeemRequest struct {
@@ -20,174 +21,124 @@ type UpdateRedeemRequest struct {
 }
 
 type RedeemListResponse struct {
-	Response
 	RedeemList []account.RedeemRequest `json:"redeemList"`
 }
 
-func NewRedeem(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func NewRedeem(w http.ResponseWriter, r *http.Request) error {
 
 	if r.Method != "POST" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
+		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
 	var redeemRequest NewRedeemRequest
-
 	if err := json.NewDecoder(r.Body).Decode(&redeemRequest); err != nil {
-		http.Error(w, "error decoding request body", http.StatusBadRequest)
-		return
+		return errors.NewHTTPError(err, http.StatusBadRequest, "error decoding request body")
 	}
 
 	requestorRollno, err := auth.GetRollnoFromRequest(r)
 	if err != nil {
-		http.Error(w, "bad cookie", http.StatusBadRequest)
+		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
 	}
 
-	err = auth.VerifyOTP(requestorRollno, redeemRequest.Otp)
-	if err != nil {
-		json.NewEncoder(w).Encode(&Response{
-			Success:      false,
-			ErrorMessage: "could not successfully verify otp",
-		})
-		return
+	if err = auth.VerifyOTP(requestorRollno, redeemRequest.Otp); err != nil {
+		return err
 	}
 
-	err = account.NewRedeem(requestorRollno, redeemRequest.NumCoins, redeemRequest.Item)
-
-	if err != nil {
-		json.NewEncoder(w).Encode(&Response{
-			Success:      false,
-			ErrorMessage: err.Error(),
-		})
-		return
+	if err = account.NewRedeem(requestorRollno, redeemRequest.NumCoins, redeemRequest.Item); err != nil {
+		return err
 	}
 
-	json.NewEncoder(w).Encode(&Response{
-		Success: true,
-	})
+	return nil
 }
 
-func AcceptRedeem(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func AcceptRedeem(w http.ResponseWriter, r *http.Request) error {
 
 	if r.Method != "POST" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
+		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
 	var redeemRequest UpdateRedeemRequest
-
 	if err := json.NewDecoder(r.Body).Decode(&redeemRequest); err != nil {
-		http.Error(w, "error decoding request body", http.StatusBadRequest)
-		return
+		return errors.NewHTTPError(err, http.StatusBadRequest, "error decoding request body")
+
 	}
 
 	requestorRollno, err := auth.GetRollnoFromRequest(r)
 	if err != nil {
-		http.Error(w, "bad cookie", http.StatusBadRequest)
+		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
 	}
 
 	requestorRole := account.GetAccountRoleByRollno(requestorRollno)
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead) {
-		http.Error(w, "you are not authorized to accept redeem requests", http.StatusUnauthorized)
-		return
+		return errors.NewHTTPError(nil, http.StatusUnauthorized, "you are not authorized to accept redeem requests")
 	}
 
-	err = account.AcceptRedeem(redeemRequest.RedeemId, requestorRollno)
-
-	if err != nil {
-		json.NewEncoder(w).Encode(&Response{
-			Success:      false,
-			ErrorMessage: err.Error(),
-		})
-		return
+	if err = account.AcceptRedeem(redeemRequest.RedeemId, requestorRollno); err != nil {
+		return err
 	}
 
-	json.NewEncoder(w).Encode(&Response{
-		Success: true,
-	})
+	return nil
 }
 
-func RejectRedeem(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func RejectRedeem(w http.ResponseWriter, r *http.Request) error {
 
 	if r.Method != "POST" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
+		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
 	var redeemRequest UpdateRedeemRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&redeemRequest); err != nil {
-		http.Error(w, "error decoding request body", http.StatusBadRequest)
-		return
+		return errors.NewHTTPError(err, http.StatusBadRequest, "error decoding request body")
 	}
 
 	requestorRollno, err := auth.GetRollnoFromRequest(r)
 	if err != nil {
-		http.Error(w, "bad cookie", http.StatusBadRequest)
+		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
 	}
 
 	requestorRole := account.GetAccountRoleByRollno(requestorRollno)
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead) {
-		http.Error(w, "you are not authorized to reject redeem requests", http.StatusUnauthorized)
-		return
+		return errors.NewHTTPError(nil, http.StatusUnauthorized, "you are not authorized to reject redeem requests")
 	}
 
-	err = account.RejectRedeem(redeemRequest.RedeemId, requestorRollno)
-
-	if err != nil {
-		json.NewEncoder(w).Encode(&Response{
-			Success:      false,
-			ErrorMessage: err.Error(),
-		})
-		return
+	if err = account.RejectRedeem(redeemRequest.RedeemId, requestorRollno); err != nil {
+		return err
 	}
 
-	json.NewEncoder(w).Encode(&Response{
-		Success: true,
-	})
+	return nil
 }
 
-func RedeemListByRollno(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func RedeemListByRollno(w http.ResponseWriter, r *http.Request) error {
 
-	if r.Method != "GET" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
+	if r.Method != "POST" {
+		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
 	queriedRollno := r.URL.Query().Get("rollno")
 
 	requestorRollno, err := auth.GetRollnoFromRequest(r)
 	if err != nil {
-		http.Error(w, "bad cookie", http.StatusBadRequest)
+		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
 	}
 
 	requestorRole := account.GetAccountRoleByRollno(requestorRollno)
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollno != queriedRollno) {
-		http.Error(w, "you are not authorized to view the requested redeem requests", http.StatusUnauthorized)
-		return
+		return errors.NewHTTPError(err, http.StatusUnauthorized, "you are not authorized to view the requested redeem requests")
 	}
 
 	redeemList, err := account.GetRedeemListByRollno(queriedRollno)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(&Response{
-			Success:      false,
-			ErrorMessage: err.Error(),
-		})
-		return
+		return err
 	}
 
 	json.NewEncoder(w).Encode(&RedeemListResponse{
-		Response: Response{
-			Success: true,
-		},
 		RedeemList: redeemList,
 	})
+
+	return nil
 }

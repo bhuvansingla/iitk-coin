@@ -1,13 +1,11 @@
 package auth
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -16,11 +14,6 @@ var privateKey = []byte(viper.GetString("JWT.PRIVATE_KEY"))
 type Claims struct {
 	Rollno string `json:"rollno"`
 	jwt.StandardClaims
-}
-
-type Response struct {
-	Success      bool   `json:"success"`
-	ErrorMessage string `json:"error"`
 }
 
 func GenerateToken(rollno string) (string, error) {
@@ -49,11 +42,8 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) func(http.R
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie(viper.GetString("JWT.COOKIE_NAME"))
 		if err != nil {
-			log.Error(err)
-			json.NewEncoder(w).Encode(&Response{
-				Success:      false,
-				ErrorMessage: "couldn't find cookie token",
-			})
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("bad token"))
 			return
 		}
 
@@ -63,14 +53,12 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) func(http.R
 			}
 			return privateKey, nil
 		})
+
 		//check time
 
 		if err != nil {
-			log.Error(err)
-			json.NewEncoder(w).Encode(&Response{
-				Success:      false,
-				ErrorMessage: "couldn't parse token",
-			})
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("bad token"))
 			return
 		}
 

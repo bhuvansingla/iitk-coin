@@ -1,11 +1,11 @@
 package account
 
 import (
-	"errors"
+	"net/http"
 	"time"
 
 	"github.com/bhuvansingla/iitk-coin/database"
-	log "github.com/sirupsen/logrus"
+	"github.com/bhuvansingla/iitk-coin/errors"
 )
 
 type RedeemStatus string
@@ -43,43 +43,37 @@ func AcceptRedeem(id int, adminRollno string) error {
 	var redeemRequest RedeemRequest
 	err := database.DB.QueryRow("SELECT rollno, coins FROM REDEEM_REQUEST WHERE id=?", id).Scan(&redeemRequest)
 	if err != nil {
-		log.Error(err)
-		return errors.New("internal server error")
+		return err
 	}
 
 	tx, err := database.DB.Begin()
 	if err != nil {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return err
 	}
 
 	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins - ? WHERE rollno=? AND coins - ? >= 0", redeemRequest.NumCoins, redeemRequest.RollNo, redeemRequest.NumCoins)
 	if err != nil {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return err
 	}
 
 	rowCnt, err := res.RowsAffected()
 	if err != nil {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return err
 	}
 
 	if rowCnt == 0 {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return errors.NewHTTPError(nil, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	err = tx.Commit()
 
 	if err != nil {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return err
 	}
 
 	return nil

@@ -6,6 +6,7 @@ import (
 
 	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/auth"
+	"github.com/bhuvansingla/iitk-coin/errors"
 )
 
 type TransferCoinRequest struct {
@@ -15,46 +16,29 @@ type TransferCoinRequest struct {
 	Otp            string `json:"otp"`
 }
 
-func TransferCoins(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
+func TransferCoins(w http.ResponseWriter, r *http.Request) error {
 	if r.Method != "POST" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
+		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
 	var transferCoinRequest TransferCoinRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&transferCoinRequest); err != nil {
-		http.Error(w, "error decoding request body", http.StatusBadRequest)
-		return
+		return errors.NewHTTPError(err, http.StatusBadRequest, "error decoding request body")
 	}
 
 	requestorRollno, err := auth.GetRollnoFromRequest(r)
 	if err != nil {
-		http.Error(w, "bad cookie", http.StatusBadRequest)
+		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
 	}
 
-	err = auth.VerifyOTP(requestorRollno, transferCoinRequest.Otp)
-	if err != nil {
-		json.NewEncoder(w).Encode(&Response{
-			Success:      false,
-			ErrorMessage: "could not successfully verify otp",
-		})
-		return
+	if err = auth.VerifyOTP(requestorRollno, transferCoinRequest.Otp); err != nil {
+		return err
 	}
 
-	err = account.TransferCoins(requestorRollno, transferCoinRequest.ReceiverRollno, transferCoinRequest.NumCoins, transferCoinRequest.Remarks)
-
-	if err != nil {
-		json.NewEncoder(w).Encode(&Response{
-			Success:      false,
-			ErrorMessage: err.Error(),
-		})
-		return
+	if err = account.TransferCoins(requestorRollno, transferCoinRequest.ReceiverRollno, transferCoinRequest.NumCoins, transferCoinRequest.Remarks); err != nil {
+		return err
 	}
 
-	json.NewEncoder(w).Encode(&Response{
-		Success: true,
-	})
+	return nil
 }

@@ -1,9 +1,10 @@
 package account
 
 import (
-	"errors"
+	"net/http"
 
 	"github.com/bhuvansingla/iitk-coin/database"
+	"github.com/bhuvansingla/iitk-coin/errors"
 )
 
 type Role int
@@ -52,17 +53,17 @@ func GetStoredPassword(rollno string) string {
 
 func ValidateRollNo(rollno string) error {
 	if rollno == "" {
-		return errors.New("empty roll no")
+		return errors.NewHTTPError(nil, http.StatusBadRequest, "roll no is empty")
 	}
 	return nil
 }
 
 func ValidatePassword(password string) error {
 	if password == "" {
-		return errors.New("empty password")
+		return errors.NewHTTPError(nil, http.StatusBadRequest, "password is empty")
 	}
 	if len(password) < 8 {
-		return errors.New("password too small")
+		return errors.NewHTTPError(nil, http.StatusBadRequest, "password is less than 8 characters.")
 	}
 	return nil
 }

@@ -5,39 +5,27 @@ import (
 	"net/http"
 
 	"github.com/bhuvansingla/iitk-coin/auth"
+	"github.com/bhuvansingla/iitk-coin/errors"
 )
 
 type OtpRequest struct {
 	Rollno string `json:"rollno"`
 }
 
-func GenerateOtp(w http.ResponseWriter, r *http.Request) {
-
-	w.Header().Set("Content-Type", "application/json")
+func GenerateOtp(w http.ResponseWriter, r *http.Request) error {
 
 	if r.Method != "POST" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
+		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
 	var otpRequest OtpRequest
-
 	if err := json.NewDecoder(r.Body).Decode(&otpRequest); err != nil {
-		http.Error(w, "error decoding request body", http.StatusBadRequest)
-		return
+		return errors.NewHTTPError(err, http.StatusBadRequest, "error decoding request body")
 	}
 
-	_, err := auth.GenerateOtp(otpRequest.Rollno)
-
-	if err != nil {
-		json.NewEncoder(w).Encode(&Response{
-			Success:      false,
-			ErrorMessage: err.Error(),
-		})
-		return
+	if err := auth.GenerateOtp(otpRequest.Rollno); err != nil {
+		return err
 	}
 
-	json.NewEncoder(w).Encode(&Response{
-		Success: true,
-	})
+	return nil
 }

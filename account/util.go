@@ -1,12 +1,14 @@
 package account
 
 import (
-	"errors"
+	"net/http"
+
+	"github.com/bhuvansingla/iitk-coin/errors"
 )
 
 func validateCoinValue(coins int) error {
 	if coins <= 0 {
-		return errors.New("invalid coin value")
+		return errors.NewHTTPError(nil, http.StatusBadRequest, "Coin value must be greater than 0")
 	}
 	return nil
 }

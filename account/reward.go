@@ -1,10 +1,11 @@
 package account
 
 import (
-	"errors"
+	"net/http"
 
 	"github.com/bhuvansingla/iitk-coin/database"
-	log "github.com/sirupsen/logrus"
+	"github.com/bhuvansingla/iitk-coin/errors"
+	"github.com/spf13/viper"
 )
 
 func AddCoins(rollno string, coins int) error {
@@ -14,46 +15,41 @@ func AddCoins(rollno string, coins int) error {
 	}
 
 	if !UserExists(rollno) {
-		return errors.New("user account does not exist")
+		return errors.NewHTTPError(nil, http.StatusBadRequest, "user account does not exist")
 	}
 
 	tx, err := database.DB.Begin()
 
 	if err != nil {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return err
 
 	}
 
-	limit := 1000
+	limit := viper.GetInt("WALLET.UPPER_COIN_LIMIT")
 
 	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins + ? WHERE rollno=? AND coins + ? <= ?", coins, rollno, coins, limit)
 	if err != nil {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return err
 	}
 
 	rowCnt, err := res.RowsAffected()
 	if err != nil {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return err
 	}
 
 	if rowCnt == 0 {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return errors.NewHTTPError(nil, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	err = tx.Commit()
 
 	if err != nil {
 		tx.Rollback()
-		log.Error(err)
-		return errors.New("transaction failed")
+		return err
 	}
 
 	return nil
