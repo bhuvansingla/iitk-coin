@@ -9,6 +9,7 @@ IITK Coin is a reward-based pseudo-currency system for the IIT Kanpur campus jun
 
 ## Build and Run
 
+### From Source
 ``` bash
 
 # Create the directories if they don't exist already.
@@ -27,7 +28,7 @@ go build -o iitk-coin cmd/iitk-coin/main.go
 
 ```
 
-# Docker
+### From Docker
 
 ``` bash
 # Pull the latest image from DockerHub.
