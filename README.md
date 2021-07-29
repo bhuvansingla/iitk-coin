@@ -26,3 +26,13 @@ go build -o iitk-coin cmd/iitk-coin/main.go
 ./iitk-coin
 
 ```
+
+# Docker
+
+``` bash
+# Pull the latest image from DockerHub.
+docker pull bhuvansingla/iitk-coin:latest
+
+# Run it on port 80 (or whichever you want).
+docker run -p 80:8080 -d --name iitk_coin_backend bhuvansingla/iitk-coin
+```
