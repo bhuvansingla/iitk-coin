@@ -4,7 +4,8 @@
 ![Go version](https://img.shields.io/github/go-mod/go-version/bhuvansingla/iitk-coin)
 [![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/bhuvansingla/iitk-coin)](https://hub.docker.com/r/bhuvansingla/iitk-coin)
 [![Go Build](https://img.shields.io/github/workflow/status/bhuvansingla/iitk-coin/Go?label=go%20build)](https://github.com/bhuvansingla/iitk-coin/actions)
-![GitHub Repo stars](https://img.shields.io/github/stars/bhuvansingla/iitk-coin)  
+![License](https://img.shields.io/github/license/bhuvansingla/iitk-coin)
+![GitHub Repo stars](https://img.shields.io/github/stars/bhuvansingla/iitk-coin)
 
 **IITK Coin** is a reward-based pseudo-currency system for the IIT Kanpur campus junta. 
 
