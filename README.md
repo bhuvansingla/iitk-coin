@@ -65,3 +65,6 @@ bash ./scripts/list-users-by-role.sh
 
 ```
 
+## Contributing
+The project is open to contributions from the community. For bug fixes and feature requests, please refer to the [CONTRIBUTING](https://github.com/bhuvansingla/iitk-coin/blob/main/.github/CONTRIBUTING.md) guide.
+
