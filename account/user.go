@@ -44,6 +44,13 @@ func GetAccountRoleByRollno(rollno string) Role {
 	return role
 }
 
+func GetNameByRollNo(rollno string) string {
+	row := database.DB.QueryRow("SELECT name FROM ACCOUNT WHERE rollno=?", rollno)
+	name := ""
+	row.Scan(&name) // handle error
+	return name
+}
+
 func GetStoredPassword(rollno string) string {
 	row := database.DB.QueryRow("SELECT password FROM ACCOUNT WHERE rollno=?", rollno)
 	scannedRow := ""
