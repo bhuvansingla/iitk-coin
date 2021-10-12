@@ -20,17 +20,27 @@ func GetNameByRollno(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
-	requestorRollno, err := auth.GetRollnoFromRequest(r)
+	queriedRollno := r.URL.Query().Get("rollno")
 
-	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
+	if err := account.ValidateRollNo(queriedRollno); err != nil {
+		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid rollno")
 	}
 
-	name := account.GetNameByRollNo(requestorRollno)
+	_, err := auth.GetRollnoFromRequest(r)
+
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid cookie")
+	}
+
+	name, err := account.GetNameByRollNo(queriedRollno)
+
+	if err != nil{
+		return errors.NewHTTPError(err, http.StatusBadRequest, "could not find username")
+	}
 
 	json.NewEncoder(w).Encode(&GetNameResponse{
 		Name:  name,
-		RollNo: requestorRollno,
+		RollNo: queriedRollno,
 	})
 	return nil
 }
