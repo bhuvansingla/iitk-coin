@@ -22,4 +22,5 @@ func setRoutes() {
 	http.HandleFunc("/wallet/redeem/accept", CORS(auth.IsAuthorized(errors.Handler(handlers.AcceptRedeem))))
 	http.HandleFunc("/wallet/redeem/reject", CORS(auth.IsAuthorized(errors.Handler(handlers.RejectRedeem))))
 	http.HandleFunc("/wallet/redeem/requests", CORS(auth.IsAuthorized(errors.Handler(handlers.RedeemListByRollno))))
+	http.HandleFunc("/user/name", CORS(auth.IsAuthorized(errors.Handler(handlers.GetNameByRollno))))
 }
