@@ -14,7 +14,13 @@ func AddCoins(rollno string, coins int) error {
 		return err
 	}
 
-	if !UserExists(rollno) {
+	userExists, err := UserExists(rollno)
+
+	if err != nil {
+		return err
+	}
+
+	if !userExists {
 		return errors.NewHTTPError(nil, http.StatusBadRequest, "user account does not exist")
 	}
 

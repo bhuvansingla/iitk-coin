@@ -12,10 +12,24 @@ func Login(rollno string, password string) (ok bool, err error) {
 	if err = account.ValidateRollNo(rollno); err != nil {
 		return false, err
 	}
-	if !account.UserExists(rollno) {
-		return false, errors.NewHTTPError(nil, http.StatusBadRequest, "account does not exist")
+
+	userExists, err := account.UserExists(rollno)
+
+	if err != nil {
+		return false, errors.NewHTTPError(nil, http.StatusBadRequest, "error loggin in")
 	}
-	if !util.CompareHashAndPassword(account.GetStoredPassword(rollno), password) {
+
+	if !userExists {
+		return false, errors.NewHTTPError(nil, http.StatusBadRequest, "user account does not exist")
+	}
+
+	passwordFromRollno, err := account.GetStoredPassword(rollno)
+
+	if err != nil {
+		return false, errors.NewHTTPError(nil, http.StatusBadRequest, "error when retrieving password")
+	}
+
+	if !util.CompareHashAndPassword(passwordFromRollno, password) {
 		return false, errors.NewHTTPError(nil, http.StatusBadRequest, "invalid password")
 	}
 	return true, nil

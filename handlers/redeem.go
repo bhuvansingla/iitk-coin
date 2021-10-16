@@ -68,7 +68,11 @@ func AcceptRedeem(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
 	}
 
-	requestorRole := account.GetAccountRoleByRollno(requestorRollno)
+	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
+
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusBadRequest, "error when getting account role")
+	}
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead) {
 		return errors.NewHTTPError(nil, http.StatusUnauthorized, "you are not authorized to accept redeem requests")
@@ -94,11 +98,16 @@ func RejectRedeem(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	requestorRollno, err := auth.GetRollnoFromRequest(r)
+
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
 	}
 
-	requestorRole := account.GetAccountRoleByRollno(requestorRollno)
+	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
+
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusBadRequest, "error when getting account role")
+	}
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead) {
 		return errors.NewHTTPError(nil, http.StatusUnauthorized, "you are not authorized to reject redeem requests")
@@ -124,7 +133,11 @@ func RedeemListByRollno(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
 	}
 
-	requestorRole := account.GetAccountRoleByRollno(requestorRollno)
+	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
+
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusBadRequest, "error when getting account role")
+	}
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollno != queriedRollno) {
 		return errors.NewHTTPError(err, http.StatusUnauthorized, "you are not authorized to view the requested redeem requests")

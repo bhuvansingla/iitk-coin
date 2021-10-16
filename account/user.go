@@ -30,18 +30,24 @@ func Create(rollno string, hashedPasssword string, name string) error {
 	return nil
 }
 
-func UserExists(rollno string) bool { // handle error
+func UserExists(rollno string) (bool, error) {
 	row := database.DB.QueryRow("SELECT rollno FROM ACCOUNT WHERE rollno=?", rollno)
 	scannedRow := ""
-	row.Scan(&scannedRow)
-	return scannedRow != ""
+	err := row.Scan(&scannedRow)
+	if err != nil {
+		return false, err
+	}
+	return scannedRow != "", nil
 }
 
-func GetAccountRoleByRollno(rollno string) Role {
+func GetAccountRoleByRollno(rollno string) (Role, error) {
 	row := database.DB.QueryRow("SELECT role FROM ACCOUNT WHERE rollno=?", rollno)
 	var role Role
-	row.Scan(&role) // handle error
-	return role
+	err := row.Scan(&role)
+	if err != nil {
+		return NormalUser, err
+	}
+	return role, nil
 }
 
 func GetNameByRollNo(rollno string) (string, error) {
@@ -54,11 +60,14 @@ func GetNameByRollNo(rollno string) (string, error) {
 	return name, nil
 }
 
-func GetStoredPassword(rollno string) string {
+func GetStoredPassword(rollno string) (string, error) {
 	row := database.DB.QueryRow("SELECT password FROM ACCOUNT WHERE rollno=?", rollno)
 	scannedRow := ""
-	row.Scan(&scannedRow)
-	return scannedRow
+	err := row.Scan(&scannedRow)
+	if err != nil {
+		return "", err
+	}
+	return scannedRow, nil
 }
 
 func ValidateRollNo(rollno string) error {
@@ -79,7 +88,7 @@ func ValidatePassword(password string) error {
 }
 
 func IsAdmin(rollno string) bool {
-	role := GetAccountRoleByRollno(rollno)
+	role, _ := GetAccountRoleByRollno(rollno)
 	if role == GeneralSecretary || role == AssociateHead || role == CoreTeamMember {
 		return true
 	}
