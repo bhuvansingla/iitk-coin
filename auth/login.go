@@ -16,7 +16,7 @@ func Login(rollno string, password string) (ok bool, err error) {
 	userExists, err := account.UserExists(rollno)
 
 	if err != nil {
-		return false, errors.NewHTTPError(nil, http.StatusBadRequest, "error loggin in")
+		return false, errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	if !userExists {
@@ -26,7 +26,7 @@ func Login(rollno string, password string) (ok bool, err error) {
 	passwordFromRollno, err := account.GetStoredPassword(rollno)
 
 	if err != nil {
-		return false, errors.NewHTTPError(nil, http.StatusBadRequest, "error when retrieving password")
+		return false, errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	if !util.CompareHashAndPassword(passwordFromRollno, password) {

@@ -71,7 +71,7 @@ func AcceptRedeem(w http.ResponseWriter, r *http.Request) error {
 	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
 
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "error when getting account role")
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead) {
@@ -106,7 +106,7 @@ func RejectRedeem(w http.ResponseWriter, r *http.Request) error {
 	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
 
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "error when getting account role")
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead) {
@@ -136,7 +136,7 @@ func RedeemListByRollno(w http.ResponseWriter, r *http.Request) error {
 	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
 
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "error when getting account role")
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollno != queriedRollno) {

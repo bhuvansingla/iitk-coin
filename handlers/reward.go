@@ -34,13 +34,13 @@ func RewardCoins(w http.ResponseWriter, r *http.Request) error {
 	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
 
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "error when getting requestor account role")
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	beneficiaryRole, err := account.GetAccountRoleByRollno(rewardRequest.RollNo)
 
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "error when getting beneficiary account role")
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRole == account.CoreTeamMember) {
