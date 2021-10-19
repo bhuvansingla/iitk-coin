@@ -54,18 +54,30 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) func(http.R
 			return privateKey, nil
 		})
 
-		//check time
-
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("bad token"))
-			return
-		}
-
 		if token.Valid {
 			endpoint(w, r)
 			return
+		} else if ve, ok := err.(*jwt.ValidationError); ok {
+			if ve.Errors&jwt.ValidationErrorMalformed != 0 {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("bad token"))
+				return
+			} else if ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
+				// Token is either expired or not active yet
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("token expired"))
+				return
+			} else {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
+				return
+			}
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
+			return
 		}
+		
 	}
 }
 
