@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/spf13/viper"
 )
 
@@ -13,7 +13,7 @@ var privateKey = []byte(viper.GetString("JWT.PRIVATE_KEY"))
 
 type Claims struct {
 	Rollno string `json:"rollno"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 func GenerateToken(rollno string) (string, error) {
@@ -22,8 +22,8 @@ func GenerateToken(rollno string) (string, error) {
 
 	claims := &Claims{
 		Rollno: rollno,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
 
