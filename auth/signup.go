@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func Signup(rollno string, password string, otp string) error {
+func Signup(rollno string, name string, password string, otp string) error {
 	if account.UserExists(rollno) {
 		return errors.NewHTTPError(nil, http.StatusBadRequest, "account exists already")
 	}
@@ -31,7 +31,7 @@ func Signup(rollno string, password string, otp string) error {
 		return err
 	}
 
-	err = account.Create(rollno, hashedPwd, "User Name")
+	err = account.Create(rollno, hashedPwd, name)
 	if err != nil {
 		return err
 	}
