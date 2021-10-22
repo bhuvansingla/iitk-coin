@@ -10,6 +10,7 @@ import (
 
 type SignupRequest struct {
 	Rollno   string `json:"rollno"`
+	Name	 string `json:"name"`
 	Password string `json:"password"`
 	Otp      string `json:"otp"`
 }
@@ -26,7 +27,7 @@ func Signup(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "error decoding request body")
 	}
 
-	err := auth.Signup(signupRequest.Rollno, signupRequest.Password, signupRequest.Otp)
+	err := auth.Signup(signupRequest.Rollno, signupRequest.Name, signupRequest.Password, signupRequest.Otp)
 
 	if err != nil {
 		return err

@@ -5,12 +5,12 @@ import (
 	"time"
 )
 
-const charset = "abcdefghijklmnopqrstuvwxyz" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const charset = "0123456789"
 
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func RandomOTP() string {
-	return stringWithCharset(10, charset)
+	return stringWithCharset(8, charset)
 }
 
 func stringWithCharset(length int, charset string) string {

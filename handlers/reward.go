@@ -10,8 +10,9 @@ import (
 )
 
 type RewardRequest struct {
-	Coins  int    `json:"coins"`
-	RollNo string `json:"rollno"`
+	Coins	int    `json:"coins"`
+	RollNo	string `json:"rollno"`
+	Remarks	string `json:"remarks"`
 }
 
 func RewardCoins(w http.ResponseWriter, r *http.Request) error {
@@ -28,7 +29,7 @@ func RewardCoins(w http.ResponseWriter, r *http.Request) error {
 
 	requestorRollno, err := auth.GetRollnoFromRequest(r)
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
+		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid cookie")
 	}
 
 	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
@@ -55,7 +56,7 @@ func RewardCoins(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(nil, http.StatusUnauthorized, "only gensec/ah can add coins to this account")
 	}
 
-	if err = account.AddCoins(rewardRequest.RollNo, rewardRequest.Coins); err != nil {
+	if err = account.AddCoins(rewardRequest.RollNo, rewardRequest.Coins, rewardRequest.Remarks); err != nil {
 		return err
 	}
 
