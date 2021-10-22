@@ -87,10 +87,13 @@ func ValidatePassword(password string) error {
 	return nil
 }
 
-func IsAdmin(rollno string) bool {
-	role, _ := GetAccountRoleByRollno(rollno)
-	if role == GeneralSecretary || role == AssociateHead || role == CoreTeamMember {
-		return true
+func IsAdmin(rollno string) (bool, error) {
+	role, err := GetAccountRoleByRollno(rollno)
+	if err != nil {
+		return false, errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
-	return false
+	if role == GeneralSecretary || role == AssociateHead || role == CoreTeamMember {
+		return true, nil
+	}
+	return false, nil
 }

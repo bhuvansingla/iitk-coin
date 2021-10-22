@@ -25,7 +25,11 @@ func CheckLogin(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
 	}
 
-	isAdmin := account.IsAdmin(requestorRollno)
+	isAdmin, err := account.IsAdmin(requestorRollno)
+
+	if err != nil {
+		return err
+	}
 
 	json.NewEncoder(w).Encode(&CheckLoginResponse{
 		RollNo:  requestorRollno,
