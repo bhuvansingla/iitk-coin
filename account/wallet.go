@@ -7,43 +7,43 @@ import (
 	"github.com/bhuvansingla/iitk-coin/database"
 )
 
-type transactionType string
+type TransactionType string
 
 const (
-	REWARD 		transactionType = "REWARD"
-	REDEEM 		transactionType = "REDEEM"
-	TRANSFER 	transactionType = "TRANSFER"
+	REWARD 		TransactionType = "REWARD"
+	REDEEM 		TransactionType = "REDEEM"
+	TRANSFER 	TransactionType = "TRANSFER"
 )
 
-type rewardHistory struct {
-	Type	transactionType 	`json:"Type"`
-	Time	int64				`json:"TimeStamp"`
-	Id		string				`json:"TxnID"`
-	Amount	int64				`json:"Amount"`
-	Remarks string				`json:"Remarks"`
+type RewardHistory struct {
+	Type	TransactionType 	`json:"type"`
+	Time	int64				`json:"timeStamp"`
+	Id		string				`json:"txnID"`
+	Amount	int64				`json:"amount"`
+	Remarks string				`json:"remarks"`
 }
 
-type transferHistory struct {
-	Type	transactionType 	`json:"Type"`
-	Time	int64				`json:"TimeStamp"`
-	Id		string				`json:"TxnID"`
-	Amount	int64				`json:"Amount"`
-	Tax		int64				`json:"Tax"`
-	FromRollNo string			`json:"FromRollNo"`
-	ToRollNo string				`json:"ToRollNo"`
-	Remarks string				`json:"Remarks"`
+type TransferHistory struct {
+	Type		TransactionType `json:"type"`
+	Time		int64			`json:"timeStamp"`
+	Id			string			`json:"txnID"`
+	Amount		int64			`json:"amount"`
+	Tax			int64			`json:"tax"`
+	FromRollNo 	string			`json:"fromRollNo"`
+	ToRollNo 	string			`json:"toRollNo"`
+	Remarks 	string			`json:"remarks"`
 }
 
-type redeemHistory struct {
-	Type	transactionType 	`json:"Type"`
-	Time	int64				`json:"TimeStamp"`
-	Id		string				`json:"TxnID"`
-	Amount	int64				`json:"Amount"`
-	Remarks string				`json:"Remarks"`
-	Status	RedeemStatus		`json:"Status"`
+type RedeemHistory struct {
+	Type	TransactionType 	`json:"type"`
+	Time	int64				`json:"timeStamp"`
+	Id		string				`json:"txnID"`
+	Amount	int64				`json:"amount"`
+	Remarks string				`json:"remarks"`
+	Status	RedeemStatus		`json:"status"`
 }
 
-func GetCoinBalanceByRollno(rollno string) (int, error) {
+func GetCoinBalanceByRollNo(rollno string) (int, error) {
 	row := database.DB.QueryRow("SELECT coins FROM ACCOUNT WHERE rollno=?", rollno)
 	var coins int
 	if err := row.Scan(&coins); err != nil {
@@ -52,7 +52,7 @@ func GetCoinBalanceByRollno(rollno string) (int, error) {
 	return coins, nil
 }
 
-func GetWalletHistoryByRollno(rollno string) ([]interface{}, error) {
+func GetWalletHistoryByRollNo(rollno string) ([]interface{}, error) {
 	queryString := `
 	SELECT history.*
 	FROM (
@@ -115,7 +115,7 @@ func GetWalletHistoryByRollno(rollno string) ([]interface{}, error) {
 		var (
 			id 			string
 			time 		time.Time
-			txType 		transactionType
+			txType 		TransactionType
 			fromRollno 	sql.NullString
 			toRollno	sql.NullString
 			rollno		sql.NullString
@@ -134,7 +134,7 @@ func GetWalletHistoryByRollno(rollno string) ([]interface{}, error) {
 		var historyItem interface{}
 		switch txType {
 		case REWARD:
-			historyItem = rewardHistory{
+			historyItem = RewardHistory{
 				Type: txType,
 				Time: time.Unix(),
 				Id: "RWD" + id,
@@ -142,7 +142,7 @@ func GetWalletHistoryByRollno(rollno string) ([]interface{}, error) {
 				Remarks: remarks.String,
 			}
 		case REDEEM:
-			historyItem = redeemHistory{
+			historyItem = RedeemHistory{
 				Type: txType,
 				Time: time.Unix(),
 				Id: "REDM" + id,
@@ -151,7 +151,7 @@ func GetWalletHistoryByRollno(rollno string) ([]interface{}, error) {
 				Status: RedeemStatus(status.String),
 			}
 		case TRANSFER:
-			historyItem = transferHistory{
+			historyItem = TransferHistory{
 				Type: txType,
 				Time: time.Unix(),
 				Id: "TRNS" + id,

@@ -41,7 +41,7 @@ func WalletHistory(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(nil, http.StatusBadRequest, "user account does not exist")
 	}
 
-	history, err := account.GetWalletHistoryByRollno(queriedRollno)
+	history, err := account.GetWalletHistoryByRollNo(queriedRollno)
 
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))

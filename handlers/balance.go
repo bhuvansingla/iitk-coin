@@ -41,7 +41,7 @@ func GetCoinBalance(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(nil, http.StatusBadRequest, "user account does not exist")
 	}
 
-	balance, err := account.GetCoinBalanceByRollno(queriedRollno)
+	balance, err := account.GetCoinBalanceByRollNo(queriedRollno)
 
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
