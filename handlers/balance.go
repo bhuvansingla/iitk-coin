@@ -27,18 +27,29 @@ func GetCoinBalance(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	requestorRollno, err := auth.GetRollnoFromRequest(r)
+
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
 	}
 
-	requestorRole := account.GetAccountRoleByRollno(requestorRollno)
+	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
+
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollno == queriedRollno) {
 		return errors.NewHTTPError(nil, http.StatusUnauthorized, "You are not authorized to read this account balance")
 	}
 
-	if !account.UserExists(queriedRollno) {
-		return errors.NewHTTPError(nil, http.StatusBadRequest, "user account does not exist")
+	userExists, err := account.UserExists(queriedRollno)
+
+	if err != nil {
+		errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+
+	if !userExists {
+		return errors.NewHTTPError(err, http.StatusBadRequest, "account does not exist")
 	}
 
 	balance, err := account.GetCoinBalanceByRollno(queriedRollno)

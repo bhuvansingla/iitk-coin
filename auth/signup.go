@@ -10,7 +10,13 @@ import (
 )
 
 func Signup(rollno string, name string, password string, otp string) error {
-	if account.UserExists(rollno) {
+	userExists, err := account.UserExists(rollno)
+
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+
+	if userExists {
 		return errors.NewHTTPError(nil, http.StatusBadRequest, "account exists already")
 	}
 

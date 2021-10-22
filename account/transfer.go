@@ -16,7 +16,19 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 		return err
 	}
 
-	if !UserExists(fromRollno) || !UserExists(toRollno) {
+	userExistsFrom, err := UserExists(fromRollno)
+
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+
+	userExistsTo, err := UserExists(toRollno)
+
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+
+	if !userExistsFrom || !userExistsTo {
 		return errors.NewHTTPError(nil, http.StatusBadRequest, "user account does not exist")
 	}
 

@@ -58,10 +58,17 @@ func Login(w http.ResponseWriter, r *http.Request) error {
 
 	http.SetCookie(w, cookie)
 
+	isAdmin, err := account.IsAdmin(loginRequest.RollNo)
+
+	if err != nil {
+		return err
+	}
+
 	json.NewEncoder(w).Encode(&LoginResponse{
-		IsAdmin: account.IsAdmin(loginRequest.RollNo),
+		IsAdmin: isAdmin,
 		RollNo:  loginRequest.RollNo,
 	})
+
 	return nil
 }
 

@@ -32,8 +32,17 @@ func RewardCoins(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid cookie")
 	}
 
-	requestorRole := account.GetAccountRoleByRollno(requestorRollno)
-	beneficiaryRole := account.GetAccountRoleByRollno(rewardRequest.RollNo)
+	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
+
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+
+	beneficiaryRole, err := account.GetAccountRoleByRollno(rewardRequest.RollNo)
+
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRole == account.CoreTeamMember) {
 		return errors.NewHTTPError(nil, http.StatusUnauthorized, "you don't have permission to add coins to the requested acccount")
