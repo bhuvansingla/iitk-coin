@@ -161,8 +161,6 @@ func GetWalletHistoryByRollNo(rollno string) ([]interface{}, error) {
 				ToRollNo: toRollno.String,
 				Remarks: remarks.String,
 			}
-		default:
-			historyItem = "ERR"
 		}
 
 		history = append(history, historyItem)

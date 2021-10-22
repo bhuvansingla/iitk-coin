@@ -34,7 +34,7 @@ func WalletHistory(w http.ResponseWriter, r *http.Request) error {
 	requestorRole := account.GetAccountRoleByRollno(requestorRollno)
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollno == queriedRollno) {
-		return errors.NewHTTPError(nil, http.StatusUnauthorized, "You are not authorized to read this account balance")
+		return errors.NewHTTPError(nil, http.StatusUnauthorized, "You are not authorized to read this account history")
 	}
 
 	if !account.UserExists(queriedRollno) {
