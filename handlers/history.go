@@ -9,12 +9,12 @@ import (
 	"github.com/bhuvansingla/iitk-coin/errors"
 )
 
-type GetCoinBalanceResponse struct {
-	RollNo string `json:"rollno"`
-	Coins  int    `json:"coins"`
+type WalletHistoryResponse struct {
+	History []interface{}	`json:"history"`
+	RollNo	string			`json:"rollno"`
 }
 
-func GetCoinBalance(w http.ResponseWriter, r *http.Request) error {
+func WalletHistory(w http.ResponseWriter, r *http.Request) error {
 
 	if r.Method != "GET" {
 		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
@@ -27,40 +27,29 @@ func GetCoinBalance(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	requestorRollno, err := auth.GetRollnoFromRequest(r)
-
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
 	}
 
-	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
-
-	if err != nil {
-		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
-	}
+	requestorRole := account.GetAccountRoleByRollno(requestorRollno)
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollno == queriedRollno) {
-		return errors.NewHTTPError(nil, http.StatusUnauthorized, "You are not authorized to read this account balance")
+		return errors.NewHTTPError(nil, http.StatusUnauthorized, "You are not authorized to read this account history")
 	}
 
-	userExists, err := account.UserExists(queriedRollno)
-
-	if err != nil {
-		errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	if !account.UserExists(queriedRollno) {
+		return errors.NewHTTPError(nil, http.StatusBadRequest, "user account does not exist")
 	}
 
-	if !userExists {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "account does not exist")
-	}
-
-	balance, err := account.GetCoinBalanceByRollNo(queriedRollno)
+	history, err := account.GetWalletHistoryByRollNo(queriedRollno)
 
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	json.NewEncoder(w).Encode(&GetCoinBalanceResponse{
-		Coins:  balance,
-		RollNo: queriedRollno,
+	json.NewEncoder(w).Encode(&WalletHistoryResponse{
+		History:	history,
+		RollNo:		queriedRollno,
 	})
 	return nil
 }
