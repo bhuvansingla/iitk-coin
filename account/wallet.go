@@ -101,7 +101,7 @@ func GetWalletHistoryByRollNo(rollno string) ([]interface{}, error) {
 		FROM REWARD_HISTORY
 		WHERE rollno = $1
 	) history
-	ORDER BY history.time;`
+	ORDER BY history.time DESC;`
 
 	rows, err := database.DB.Query(queryString, rollno)
 
