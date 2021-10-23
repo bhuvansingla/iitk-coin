@@ -2,7 +2,6 @@ package account
 
 import (
 	"database/sql"
-	"time"
 
 	"github.com/bhuvansingla/iitk-coin/database"
 )
@@ -114,7 +113,7 @@ func GetWalletHistoryByRollNo(rollno string) ([]interface{}, error) {
 	for rows.Next() {
 		var (
 			id 			string
-			time 		time.Time
+			time 		int64
 			txType 		TransactionType
 			fromRollno 	sql.NullString
 			toRollno	sql.NullString
@@ -136,7 +135,7 @@ func GetWalletHistoryByRollNo(rollno string) ([]interface{}, error) {
 		case REWARD:
 			historyItem = RewardHistory{
 				Type: txType,
-				Time: time.Unix(),
+				Time: time,
 				Id: "RWD" + id,
 				Amount: coins.Int64,
 				Remarks: remarks.String,
@@ -144,7 +143,7 @@ func GetWalletHistoryByRollNo(rollno string) ([]interface{}, error) {
 		case REDEEM:
 			historyItem = RedeemHistory{
 				Type: txType,
-				Time: time.Unix(),
+				Time: time,
 				Id: "REDM" + id,
 				Amount: coins.Int64,
 				Remarks: remarks.String,
@@ -153,7 +152,7 @@ func GetWalletHistoryByRollNo(rollno string) ([]interface{}, error) {
 		case TRANSFER:
 			historyItem = TransferHistory{
 				Type: txType,
-				Time: time.Unix(),
+				Time: time,
 				Id: "TRNS" + id,
 				Amount: coins.Int64,
 				Tax: tax.Int64,
