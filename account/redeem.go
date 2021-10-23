@@ -27,7 +27,7 @@ type RedeemRequest struct {
 }
 
 func NewRedeem(rollno string, numCoins int, item string) error {
-	stmt, err := database.DB.Prepare("INSERT INTO REDEEM_REQUEST (rollno,coins,time,status,item) VALUES (?,?,?,?,?)")
+	stmt, err := database.DB.Prepare("INSERT INTO REDEEM_REQUEST (rollno,coins,time,status,item) VALUES ($1,$2,$3,$4,$5)")
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func NewRedeem(rollno string, numCoins int, item string) error {
 func AcceptRedeem(id int, adminRollno string) error {
 
 	var redeemRequest RedeemRequest
-	err := database.DB.QueryRow("SELECT rollno, coins FROM REDEEM_REQUEST WHERE id=?", id).Scan(&redeemRequest)
+	err := database.DB.QueryRow("SELECT rollno, coins FROM REDEEM_REQUEST WHERE id=$1", id).Scan(&redeemRequest)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func AcceptRedeem(id int, adminRollno string) error {
 		return err
 	}
 
-	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins - ? WHERE rollno=? AND coins - ? >= 0", redeemRequest.NumCoins, redeemRequest.RollNo, redeemRequest.NumCoins)
+	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins - $1 WHERE rollno=$2 AND coins - $1 >= 0", redeemRequest.NumCoins, redeemRequest.RollNo)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -80,11 +80,11 @@ func AcceptRedeem(id int, adminRollno string) error {
 }
 
 func RejectRedeem(id int, adminRollno string) error {
-	stmt, err := database.DB.Prepare("UPDATE REDEEM_REQUEST SET (status,actionByRollno) VALUES (?,?) WHERE id=?")
+	stmt, err := database.DB.Prepare("UPDATE REDEEM_REQUEST SET (status,actionByRollno) VALUES ($1,$2) WHERE id=$3")
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(Rejected, adminRollno)
+	_, err = stmt.Exec(Rejected, adminRollno, id)
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func RejectRedeem(id int, adminRollno string) error {
 }
 
 func GetRedeemListByRollno(rollno string) ([]RedeemRequest, error) {
-	rows, err := database.DB.Query("SELECT * FROM REDEEM_REQUEST WHERE rollno=?", rollno)
+	rows, err := database.DB.Query("SELECT * FROM REDEEM_REQUEST WHERE rollno=$1", rollno)
 	if err != nil {
 		return nil, err
 	}

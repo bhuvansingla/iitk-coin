@@ -44,7 +44,7 @@ type RedeemHistory struct {
 }
 
 func GetCoinBalanceByRollNo(rollno string) (int, error) {
-	row := database.DB.QueryRow("SELECT coins FROM ACCOUNT WHERE rollno=?", rollno)
+	row := database.DB.QueryRow("SELECT coins FROM ACCOUNT WHERE rollno=$1", rollno)
 	var coins int
 	if err := row.Scan(&coins); err != nil {
 		return 0, err

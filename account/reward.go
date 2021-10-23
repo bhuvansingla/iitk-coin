@@ -34,7 +34,7 @@ func AddCoins(rollno string, coins int, remarks string) error {
 
 	limit := viper.GetInt("WALLET.UPPER_COIN_LIMIT")
 
-	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins + ? WHERE rollno=? AND coins + ? <= ?", coins, rollno, coins, limit)
+	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins + $1 WHERE rollno=$2 AND coins + $1 <= $3", coins, rollno, limit)
 
 	if err != nil {
 		tx.Rollback()
@@ -52,7 +52,7 @@ func AddCoins(rollno string, coins int, remarks string) error {
 		return errors.NewHTTPError(nil, http.StatusBadRequest, "wallet upper limit reached")
 	}
 
-	stmt, err := tx.Prepare("INSERT INTO REWARD_HISTORY (rollno, coins, time, remarks) VALUES (?, ?, ?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO REWARD_HISTORY (rollno, coins, time, remarks) VALUES ($1, $2, $3, $4)")
 
 	if err != nil {
 		tx.Rollback()

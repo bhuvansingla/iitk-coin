@@ -38,7 +38,7 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 		return err
 	}
 
-	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins - ? WHERE rollno = ? AND coins - ? >= 0 AND coins", numCoins, fromRollno, numCoins)
+	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins - $1 WHERE rollno = $2 AND coins - $1 >= 0 AND coins", numCoins, fromRollno)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -58,7 +58,7 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 	limit := viper.GetInt("WALLET.UPPER_COIN_LIMIT")
 	numCoinsToAdd := numCoins - calculateTax(fromRollno, toRollno, numCoins)
 
-	res, err = tx.Exec("UPDATE ACCOUNT SET coins = coins + ? WHERE rollno=? AND coins + ? <= ?", numCoinsToAdd, toRollno, numCoinsToAdd, limit)
+	res, err = tx.Exec("UPDATE ACCOUNT SET coins = coins + $1 WHERE rollno=$2 AND coins + $1 <= $3", numCoinsToAdd, toRollno, limit)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -75,7 +75,7 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 		return errors.NewHTTPError(nil, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	_, err = tx.Exec("INSERT INTO TRANSFER_HISTORY (fromRollno, toRollno, time, coins, tax, remarks) VALUES (?,?,?,?,?,?)", fromRollno, toRollno, time.Now(), numCoins, 0, remarks)
+	_, err = tx.Exec("INSERT INTO TRANSFER_HISTORY (fromRollno, toRollno, time, coins, tax, remarks) VALUES ($1, $2, $3, $4, $5, $6)", fromRollno, toRollno, time.Now(), numCoins, numCoins - numCoinsToAdd, remarks)
 
 	if err != nil {
 		tx.Rollback()
