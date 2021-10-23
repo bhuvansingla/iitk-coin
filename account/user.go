@@ -1,6 +1,7 @@
 package account
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/bhuvansingla/iitk-coin/database"
@@ -34,6 +35,9 @@ func UserExists(rollno string) (bool, error) {
 	row := database.DB.QueryRow("SELECT rollno FROM ACCOUNT WHERE rollno=$1", rollno)
 	scannedRow := ""
 	err := row.Scan(&scannedRow)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
 	if err != nil {
 		return false, err
 	}

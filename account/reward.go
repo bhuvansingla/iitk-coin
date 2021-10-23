@@ -59,7 +59,7 @@ func AddCoins(rollno string, coins int, remarks string) error {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	_, err = stmt.Exec(rollno, coins, time.Now(), remarks);
+	_, err = stmt.Exec(rollno, coins, time.Now().Unix(), remarks);
 	
 	if err != nil {
 		tx.Rollback()

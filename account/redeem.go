@@ -31,7 +31,7 @@ func NewRedeem(rollno string, numCoins int, item string) error {
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(rollno, numCoins, time.Now(), Pending, item)
+	_, err = stmt.Exec(rollno, numCoins, time.Now().Unix(), Pending, item)
 	if err != nil {
 		return err
 	}

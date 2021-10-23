@@ -20,7 +20,7 @@ func Connect() (err error) {
 		dbname   = viper.GetString("DATABASE.NAME")
 	)
 
-	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s", host, port, user, password, dbname)
     
 	db, err := sql.Open("postgres", psqlconn)
 	if err != nil {

@@ -75,7 +75,7 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 		return errors.NewHTTPError(nil, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	_, err = tx.Exec("INSERT INTO TRANSFER_HISTORY (fromRollno, toRollno, time, coins, tax, remarks) VALUES ($1, $2, $3, $4, $5, $6)", fromRollno, toRollno, time.Now(), numCoins, numCoins - numCoinsToAdd, remarks)
+	_, err = tx.Exec("INSERT INTO TRANSFER_HISTORY (fromRollno, toRollno, time, coins, tax, remarks) VALUES ($1, $2, $3, $4, $5, $6)", fromRollno, toRollno, time.Now().Unix(), numCoins, numCoins - numCoinsToAdd, remarks)
 
 	if err != nil {
 		tx.Rollback()

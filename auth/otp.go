@@ -34,7 +34,7 @@ func GenerateOtp(rollno string) error {
 		return err
 	}
 
-	if _, err = stmt.Exec(rollno, otp, time.Now(), 0); err != nil {
+	if _, err = stmt.Exec(rollno, otp, time.Now().Unix(), 0); err != nil {
 		return err
 	}
 
@@ -48,7 +48,7 @@ func GenerateOtp(rollno string) error {
 }
 
 func validOtpExists(rollno string) (bool, error) {
-	createdBefore := time.Now().Add(-20 * time.Minute)
+	createdBefore := time.Now().Add(-20 * time.Minute).Unix()
 
 	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=$1 AND created > $2 AND used IS FALSE", rollno, createdBefore)
 	var tempScan string
@@ -71,17 +71,19 @@ func markOtpAsUsed(rollno string) error {
 }
 
 func VerifyOTP(rollno string, otp string) (err error) {
-	createdBefore := time.Now().Add(-20 * time.Minute)
+	createdBefore := time.Now().Add(-20 * time.Minute).Unix()
 
 	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=$1 AND created > $2 AND otp=$3 AND used IS FALSE", rollno, createdBefore, otp)
 	var tempScan string
 	err = row.Scan(&tempScan)
-	if err != nil {
-		return
-	}
+
 	if err == sql.ErrNoRows {
 		return errors.NewHTTPError(nil, http.StatusUnauthorized, "Invalid OTP")
 	}
+	if err != nil {
+		return
+	}
+	
 	err = markOtpAsUsed(rollno)
 	return
 }
