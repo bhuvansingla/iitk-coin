@@ -3,7 +3,11 @@ SERVER:
   PORT: 8080
 
 DATABASE:
-  NAME: "iitkcoin.db"
+  HOST: "localhost"
+  PORT: 5432
+  USER: "postgres"
+  PASSWORD: ""
+  NAME: "iitkcoin"
 
 WALLET:
   UPPER_COIN_LIMIT: 10000
