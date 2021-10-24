@@ -39,3 +39,7 @@ MAIL:
   PASSWORD: "password"
   HOST: "smtp.gmail.com"
   PORT: "587"
+
+OTP:
+  EXPIRY_PERIOD_IN_MIN: 20
+  NEW_REQUEST_WAIT_TIME_IN_MIN: 1

@@ -10,6 +10,8 @@ import (
 	"github.com/bhuvansingla/iitk-coin/errors"
 	"github.com/bhuvansingla/iitk-coin/mail"
 	"github.com/bhuvansingla/iitk-coin/util"
+
+	"github.com/spf13/viper"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -48,9 +50,10 @@ func GenerateOtp(rollno string) error {
 }
 
 func validOtpExists(rollno string) (bool, error) {
-	createdBefore := time.Now().Add(-20 * time.Minute).Unix()
+	newRequestWaitTime := viper.GetInt("OTP.NEW_REQUEST_WAIT_TIME_IN_MIN")
+	createdAfter := time.Now().Add(-time.Duration(newRequestWaitTime) * time.Minute).Unix()
 
-	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=$1 AND created > $2 AND used IS FALSE", rollno, createdBefore)
+	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=$1 AND created > $2 AND used IS FALSE", rollno, createdAfter)
 	var tempScan string
 	err := row.Scan(&tempScan)
 	if err == sql.ErrNoRows {
@@ -71,9 +74,10 @@ func markOtpAsUsed(rollno string) error {
 }
 
 func VerifyOTP(rollno string, otp string) (err error) {
-	createdBefore := time.Now().Add(-20 * time.Minute).Unix()
+	expiryPeriod := viper.GetInt("OTP.EXPIRY_PERIOD_IN_MIN")
+	createdAfter := time.Now().Add(-time.Duration(expiryPeriod) * time.Minute).Unix()
 
-	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=$1 AND created > $2 AND otp=$3 AND used IS FALSE", rollno, createdBefore, otp)
+	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=$1 AND created > $2 AND otp=$3 AND used IS FALSE", rollno, createdAfter, otp)
 	var tempScan string
 	err = row.Scan(&tempScan)
 
