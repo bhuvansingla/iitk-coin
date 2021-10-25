@@ -1,6 +1,7 @@
 package account
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/bhuvansingla/iitk-coin/database"
@@ -19,7 +20,7 @@ const (
 func Create(rollno string, hashedPasssword string, name string) error {
 
 	role := NormalUser
-	stmt, err := database.DB.Prepare("INSERT INTO ACCOUNT (rollno,name,password,coins,role) VALUES (?,?,?,?,?)")
+	stmt, err := database.DB.Prepare("INSERT INTO ACCOUNT (rollno, name, password, coins, role) VALUES ($1, $2, $3, $4, $5)")
 	if err != nil {
 		return err
 	}
@@ -31,9 +32,12 @@ func Create(rollno string, hashedPasssword string, name string) error {
 }
 
 func UserExists(rollno string) (bool, error) {
-	row := database.DB.QueryRow("SELECT rollno FROM ACCOUNT WHERE rollno=?", rollno)
+	row := database.DB.QueryRow("SELECT rollno FROM ACCOUNT WHERE rollno=$1", rollno)
 	scannedRow := ""
 	err := row.Scan(&scannedRow)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
 	if err != nil {
 		return false, err
 	}
@@ -41,7 +45,7 @@ func UserExists(rollno string) (bool, error) {
 }
 
 func GetAccountRoleByRollno(rollno string) (Role, error) {
-	row := database.DB.QueryRow("SELECT role FROM ACCOUNT WHERE rollno=?", rollno)
+	row := database.DB.QueryRow("SELECT role FROM ACCOUNT WHERE rollno=$1", rollno)
 	var role Role
 	err := row.Scan(&role)
 	if err != nil {
@@ -51,7 +55,7 @@ func GetAccountRoleByRollno(rollno string) (Role, error) {
 }
 
 func GetNameByRollNo(rollno string) (string, error) {
-	row := database.DB.QueryRow("SELECT name FROM ACCOUNT WHERE rollno=?", rollno)
+	row := database.DB.QueryRow("SELECT name FROM ACCOUNT WHERE rollno=$1", rollno)
 	name := ""
 	err := row.Scan(&name)
 	if err != nil {
@@ -61,7 +65,7 @@ func GetNameByRollNo(rollno string) (string, error) {
 }
 
 func GetStoredPassword(rollno string) (string, error) {
-	row := database.DB.QueryRow("SELECT password FROM ACCOUNT WHERE rollno=?", rollno)
+	row := database.DB.QueryRow("SELECT password FROM ACCOUNT WHERE rollno=$1", rollno)
 	scannedRow := ""
 	err := row.Scan(&scannedRow)
 	if err != nil {

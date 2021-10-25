@@ -10,6 +10,8 @@ import (
 	"github.com/bhuvansingla/iitk-coin/errors"
 	"github.com/bhuvansingla/iitk-coin/mail"
 	"github.com/bhuvansingla/iitk-coin/util"
+
+	"github.com/spf13/viper"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -29,12 +31,12 @@ func GenerateOtp(rollno string) error {
 
 	otp := util.RandomOTP()
 
-	stmt, err := database.DB.Prepare("INSERT INTO OTP (rollno, otp, created, used) VALUES (?,?,?,?)")
+	stmt, err := database.DB.Prepare("INSERT INTO OTP (rollno, otp, created, used) VALUES ($1,$2,$3,$4)")
 	if err != nil {
 		return err
 	}
 
-	if _, err = stmt.Exec(rollno, otp, time.Now(), 0); err != nil {
+	if _, err = stmt.Exec(rollno, otp, time.Now().Unix(), 0); err != nil {
 		return err
 	}
 
@@ -48,7 +50,10 @@ func GenerateOtp(rollno string) error {
 }
 
 func validOtpExists(rollno string) (bool, error) {
-	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=? AND created > datetime('now',  '-20 minute' , 'localtime') AND used IS FALSE", rollno)
+	newRequestWaitTime := viper.GetInt("OTP.NEW_REQUEST_WAIT_TIME_IN_MIN")
+	createdAfter := time.Now().Add(-time.Duration(newRequestWaitTime) * time.Minute).Unix()
+
+	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=$1 AND created > $2 AND used IS FALSE", rollno, createdAfter)
 	var tempScan string
 	err := row.Scan(&tempScan)
 	if err == sql.ErrNoRows {
@@ -61,7 +66,7 @@ func validOtpExists(rollno string) (bool, error) {
 }
 
 func markOtpAsUsed(rollno string) error {
-	_, err := database.DB.Exec("UPDATE OTP SET used=? WHERE rollno=?", 1, rollno)
+	_, err := database.DB.Exec("UPDATE OTP SET used=$1 WHERE rollno=$2", 1, rollno)
 	if err != nil {
 		return err
 	}
@@ -69,15 +74,20 @@ func markOtpAsUsed(rollno string) error {
 }
 
 func VerifyOTP(rollno string, otp string) (err error) {
-	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=? AND otp=? AND created > datetime('now',  '-20 minute' , 'localtime') AND used IS FALSE", rollno, otp)
+	expiryPeriod := viper.GetInt("OTP.EXPIRY_PERIOD_IN_MIN")
+	createdAfter := time.Now().Add(-time.Duration(expiryPeriod) * time.Minute).Unix()
+
+	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=$1 AND created > $2 AND otp=$3 AND used IS FALSE", rollno, createdAfter, otp)
 	var tempScan string
 	err = row.Scan(&tempScan)
-	if err != nil {
-		return
-	}
+
 	if err == sql.ErrNoRows {
 		return errors.NewHTTPError(nil, http.StatusUnauthorized, "Invalid OTP")
 	}
+	if err != nil {
+		return
+	}
+	
 	err = markOtpAsUsed(rollno)
 	return
 }
