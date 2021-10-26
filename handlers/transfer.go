@@ -64,7 +64,7 @@ func TransferTax(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
 	}
 
-	tax, err := account.TransferTax(requestorRollno, transferCoinRequest.ReceiverRollno, transferCoinRequest.NumCoins)
+	tax, err := account.CalculateTransferTax(requestorRollno, transferCoinRequest.ReceiverRollno, transferCoinRequest.NumCoins)
 	if err != nil {
 		return err
 	}
