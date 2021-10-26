@@ -15,6 +15,10 @@ type RewardRequest struct {
 	Remarks	string `json:"remarks"`
 }
 
+type RewardResponse struct {
+	TxnId string `json:"id"`
+}
+
 func RewardCoins(w http.ResponseWriter, r *http.Request) error {
 
 	if r.Method != "POST" {
@@ -56,9 +60,12 @@ func RewardCoins(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(nil, http.StatusUnauthorized, "only gensec/ah can add coins to this account")
 	}
 
-	if err = account.AddCoins(rewardRequest.RollNo, rewardRequest.Coins, rewardRequest.Remarks); err != nil {
+	id, err := account.AddCoins(rewardRequest.RollNo, rewardRequest.Coins, rewardRequest.Remarks)
+	if err != nil {
 		return err
 	}
+
+	json.NewEncoder(w).Encode(&RewardResponse{TxnId: id})
 
 	return nil
 }
