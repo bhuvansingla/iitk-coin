@@ -1,11 +1,13 @@
 package account
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/bhuvansingla/iitk-coin/database"
 	"github.com/bhuvansingla/iitk-coin/errors"
+	"github.com/spf13/viper"
 )
 
 type RedeemStatus string
@@ -26,16 +28,24 @@ type RedeemRequest struct {
 	Status   RedeemStatus `field:"status"`
 }
 
-func NewRedeem(rollno string, numCoins int, item string) error {
-	stmt, err := database.DB.Prepare("INSERT INTO REDEEM_REQUEST (rollno,coins,time,status,item) VALUES ($1,$2,$3,$4,$5)")
+func NewRedeem(rollno string, numCoins int, item string) (string, error) {
+	var (
+		redeemSuffix = viper.GetString("TXNID.REDEEM_SUFFIX")
+		txnIDPadding = viper.GetInt("TXNID.PADDING")
+		id int
+	)
+
+	stmt, err := database.DB.Prepare("INSERT INTO REDEEM_REQUEST (rollno,coins,time,status,item) VALUES ($1,$2,$3,$4,$5) RETURNING id")
 	if err != nil {
-		return err
+		return "", err
 	}
-	_, err = stmt.Exec(rollno, numCoins, time.Now().Unix(), Pending, item)
+
+	err = stmt.QueryRow(rollno, numCoins, time.Now().Unix(), Pending, item).Scan(&id)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	
+	return fmt.Sprintf("%s%0*d", redeemSuffix, txnIDPadding, id),  nil
 }
 
 func AcceptRedeem(id int, adminRollno string) error {

@@ -26,6 +26,10 @@ type TransferTaxResponse struct {
 	Tax    int    `json:"tax"`
 }
 
+type TransferCoinResponse struct {
+	TxnID string `json:"id"`
+}
+
 func TransferCoins(w http.ResponseWriter, r *http.Request) error {
 	if r.Method != "POST" {
 		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
@@ -46,9 +50,12 @@ func TransferCoins(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	if err = account.TransferCoins(requestorRollno, transferCoinRequest.ReceiverRollno, transferCoinRequest.NumCoins, transferCoinRequest.Remarks); err != nil {
+	id, err := account.TransferCoins(requestorRollno, transferCoinRequest.ReceiverRollno, transferCoinRequest.NumCoins, transferCoinRequest.Remarks)
+	if err != nil {
 		return err
 	}
+
+	json.NewEncoder(w).Encode(&TransferCoinResponse{TxnID: id})
 
 	return nil
 }

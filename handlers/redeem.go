@@ -16,6 +16,10 @@ type NewRedeemRequest struct {
 	Otp            string `json:"otp"`
 }
 
+type NewRedeemResponse struct {
+	TxnId string `json:"id"`
+}
+
 type UpdateRedeemRequest struct {
 	RedeemId int `json:"redeemId"`
 }
@@ -44,9 +48,12 @@ func NewRedeem(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	if err = account.NewRedeem(requestorRollno, redeemRequest.NumCoins, redeemRequest.Item); err != nil {
+	id, err := account.NewRedeem(requestorRollno, redeemRequest.NumCoins, redeemRequest.Item)
+	if err != nil {
 		return err
 	}
+
+	json.NewEncoder(w).Encode(&NewRedeemResponse{TxnId: id})
 
 	return nil
 }
