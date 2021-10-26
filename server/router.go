@@ -18,6 +18,7 @@ func setRoutes() {
 	http.HandleFunc("/wallet/history", CORS(auth.IsAuthorized(errors.Handler(handlers.WalletHistory))))
 	http.HandleFunc("/wallet/add", CORS(auth.IsAuthorized(errors.Handler(handlers.RewardCoins))))
 	http.HandleFunc("/wallet/transfer", CORS(auth.IsAuthorized(errors.Handler(handlers.TransferCoins))))
+	http.HandleFunc("/wallet/transfer/tax", CORS(auth.IsAuthorized(errors.Handler(handlers.TransferTax))))
 	http.HandleFunc("/wallet/balance", CORS(auth.IsAuthorized(errors.Handler(handlers.GetCoinBalance))))
 	http.HandleFunc("/wallet/redeem/new", CORS(auth.IsAuthorized(errors.Handler(handlers.NewRedeem))))
 	http.HandleFunc("/wallet/redeem/accept", CORS(auth.IsAuthorized(errors.Handler(handlers.AcceptRedeem))))
