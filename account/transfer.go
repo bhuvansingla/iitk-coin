@@ -60,7 +60,7 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 	tax, err := CalculateTransferTax(fromRollno, toRollno, numCoins)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return "", err
 	}
 
 	numCoinsToAdd := numCoins - tax
