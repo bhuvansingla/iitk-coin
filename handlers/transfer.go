@@ -16,6 +16,11 @@ type TransferCoinRequest struct {
 	Otp            string `json:"otp"`
 }
 
+type TransferTaxResponse struct {
+	RollNo string `json:"rollNo"`
+	Tax    int    `json:"tax"`
+}
+
 func TransferCoins(w http.ResponseWriter, r *http.Request) error {
 	if r.Method != "POST" {
 		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
@@ -40,5 +45,34 @@ func TransferCoins(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	return nil
+}
+
+func TransferTax(w http.ResponseWriter, r *http.Request) error {
+	if r.Method != "POST" {
+		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
+	}
+
+	var transferCoinRequest TransferCoinRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&transferCoinRequest); err != nil {
+		return errors.NewHTTPError(err, http.StatusBadRequest, "error decoding request body")
+	}
+
+	requestorRollno, err := auth.GetRollnoFromRequest(r)
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
+	}
+
+	tax, err := account.TransferTax(requestorRollno, transferCoinRequest.ReceiverRollno, transferCoinRequest.NumCoins)
+	if err != nil {
+		return err
+	}
+
+	json.NewEncoder(w).Encode(TransferTaxResponse{
+		RollNo: requestorRollno,
+		Tax:    tax,
+	})
+	
 	return nil
 }

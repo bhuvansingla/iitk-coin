@@ -91,6 +91,32 @@ func TransferCoins(fromRollno string, toRollno string, numCoins int, remarks str
 	return nil
 }
 
+func TransferTax(fromRollno string, toRollno string, numCoins int) (int, error) {
+
+	err := validateCoinValue(numCoins)
+	if err != nil {
+		return 0, err
+	}
+
+	userExistsFrom, err := UserExists(fromRollno)
+
+	if err != nil {
+		return 0, errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+
+	userExistsTo, err := UserExists(toRollno)
+
+	if err != nil {
+		return 0, errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+
+	if !userExistsFrom || !userExistsTo {
+		return 0, errors.NewHTTPError(nil, http.StatusBadRequest, "user account does not exist")
+	}
+
+	return calculateTax(fromRollno, toRollno, numCoins), nil
+}
+
 func calculateTax(rollno1 string, rollno2 string, numCoins int) (tax int) {
 	if rollno1[:2] == rollno2[:2] {
 		return (numCoins * viper.GetInt("TAX.INTER_BATCH") / 100)
