@@ -11,6 +11,10 @@
 
 Detailed vision and regulation rules of this currency are documented in the wiki [here](https://github.com/bhuvansingla/iitk-coin/wiki/Vision-&-Regulation-Rules).
 
+This repository holds the backend system, developed with **Go** and **PostgreSQL**. 
+
+The **React Native** application of IITK Coin is maintained at :octocat: [bhuvansingla/iitk-coin-native-app](https://github.com/bhuvansingla/iitk-coin-native-app).
+
 ## Build and Run
 
 ### From Source
