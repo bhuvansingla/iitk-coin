@@ -10,6 +10,7 @@ import (
 
 func setRoutes() {
 	http.HandleFunc("/", CORS(handlers.Index))
+
 	http.HandleFunc("/auth/login", CORS(errors.Handler(handlers.Login)))
 	http.HandleFunc("/auth/signup", CORS(errors.Handler(handlers.Signup)))
 	http.HandleFunc("/auth/check", CORS(auth.IsAuthorized((errors.Handler(handlers.CheckLogin)))))
@@ -17,14 +18,14 @@ func setRoutes() {
 	http.HandleFunc("/auth/logout", CORS(errors.Handler(handlers.Logout)))
 
 	http.HandleFunc("/user/name", CORS(auth.IsAuthorized(errors.Handler(handlers.GetNameByRollNo))))
-	http.HandleFunc("/wallet/history", CORS(auth.IsAuthorized(errors.Handler(handlers.WalletHistory))))
-	http.HandleFunc("/wallet/transfer/tax", CORS(auth.IsAuthorized(errors.Handler(handlers.TransferTax))))
-	http.HandleFunc("/wallet/transfer", CORS(auth.IsAuthorized(errors.Handler(handlers.TransferCoins))))
-	http.HandleFunc("/wallet/balance", CORS(auth.IsAuthorized(errors.Handler(handlers.GetCoinBalance))))
-	http.HandleFunc("/wallet/redeem/new", CORS(auth.IsAuthorized(errors.Handler(handlers.NewRedeem))))
 
 	http.HandleFunc("/wallet/add", CORS(auth.IsAuthorized(errors.Handler(handlers.RewardCoins))))
+	http.HandleFunc("/wallet/balance", CORS(auth.IsAuthorized(errors.Handler(handlers.GetCoinBalance))))
+	http.HandleFunc("/wallet/history", CORS(auth.IsAuthorized(errors.Handler(handlers.WalletHistory))))
 	http.HandleFunc("/wallet/redeem/accept", CORS(auth.IsAuthorized(errors.Handler(handlers.AcceptRedeem))))
+	http.HandleFunc("/wallet/redeem/new", CORS(auth.IsAuthorized(errors.Handler(handlers.NewRedeem))))
 	http.HandleFunc("/wallet/redeem/reject", CORS(auth.IsAuthorized(errors.Handler(handlers.RejectRedeem))))
 	http.HandleFunc("/wallet/redeem/requests", CORS(auth.IsAuthorized(errors.Handler(handlers.RedeemListByRollNo))))
+	http.HandleFunc("/wallet/transfer", CORS(auth.IsAuthorized(errors.Handler(handlers.TransferCoins))))
+	http.HandleFunc("/wallet/transfer/tax", CORS(auth.IsAuthorized(errors.Handler(handlers.TransferTax))))
 }

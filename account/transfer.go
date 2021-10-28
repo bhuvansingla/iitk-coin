@@ -37,7 +37,7 @@ func TransferCoins(fromRollNo string, toRollNo string, numCoins int, remarks str
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins - $1 WHERE rollno = $2 AND coins - $1 >= 0", numCoins, fromRollNo)
+	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins - $1 WHERE rollNo = $2 AND coins - $1 >= 0", numCoins, fromRollNo)
 	if err != nil {
 		tx.Rollback()
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
@@ -63,7 +63,7 @@ func TransferCoins(fromRollNo string, toRollNo string, numCoins int, remarks str
 
 	numCoinsToAdd := numCoins - tax
 
-	res, err = tx.Exec("UPDATE ACCOUNT SET coins = coins + $1 WHERE rollno=$2 AND coins + $1 <= $3", numCoinsToAdd, toRollNo, limit)
+	res, err = tx.Exec("UPDATE ACCOUNT SET coins = coins + $1 WHERE rollNo=$2 AND coins + $1 <= $3", numCoinsToAdd, toRollNo, limit)
 	if err != nil {
 		tx.Rollback()
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))

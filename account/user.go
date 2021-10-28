@@ -20,7 +20,7 @@ const (
 func Create(rollNo string, hashedPasssword string, name string) error {
 
 	role := NormalUser
-	stmt, err := database.DB.Prepare("INSERT INTO ACCOUNT (rollno, name, password, coins, role) VALUES ($1, $2, $3, $4, $5)")
+	stmt, err := database.DB.Prepare("INSERT INTO ACCOUNT (rollNo, name, password, coins, role) VALUES ($1, $2, $3, $4, $5)")
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
@@ -32,7 +32,7 @@ func Create(rollNo string, hashedPasssword string, name string) error {
 }
 
 func UserExists(rollNo string) (bool, error) {
-	row := database.DB.QueryRow("SELECT rollno FROM ACCOUNT WHERE rollno=$1", rollNo)
+	row := database.DB.QueryRow("SELECT rollNo FROM ACCOUNT WHERE rollNo=$1", rollNo)
 	scannedRow := ""
 	err := row.Scan(&scannedRow)
 	if err == sql.ErrNoRows {
@@ -45,7 +45,7 @@ func UserExists(rollNo string) (bool, error) {
 }
 
 func GetAccountRoleByRollNo(rollNo string) (Role, error) {
-	row := database.DB.QueryRow("SELECT role FROM ACCOUNT WHERE rollno=$1", rollNo)
+	row := database.DB.QueryRow("SELECT role FROM ACCOUNT WHERE rollNo=$1", rollNo)
 	var role Role
 	err := row.Scan(&role)
 	if err != nil {
@@ -55,7 +55,7 @@ func GetAccountRoleByRollNo(rollNo string) (Role, error) {
 }
 
 func GetNameByRollNo(rollNo string) (string, error) {
-	row := database.DB.QueryRow("SELECT name FROM ACCOUNT WHERE rollno=$1", rollNo)
+	row := database.DB.QueryRow("SELECT name FROM ACCOUNT WHERE rollNo=$1", rollNo)
 	name := ""
 	err := row.Scan(&name)
 	if err != nil {
@@ -65,7 +65,7 @@ func GetNameByRollNo(rollNo string) (string, error) {
 }
 
 func GetStoredPassword(rollNo string) (string, error) {
-	row := database.DB.QueryRow("SELECT password FROM ACCOUNT WHERE rollno=$1", rollNo)
+	row := database.DB.QueryRow("SELECT password FROM ACCOUNT WHERE rollNo=$1", rollNo)
 	scannedRow := ""
 	err := row.Scan(&scannedRow)
 	if err != nil {

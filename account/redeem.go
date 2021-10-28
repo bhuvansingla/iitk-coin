@@ -37,7 +37,7 @@ func NewRedeem(rollNo string, numCoins int, item string) (string, error) {
 		id int
 	)
 
-	stmt, err := database.DB.Prepare("INSERT INTO REDEEM_REQUEST (rollno,coins,time,status,item) VALUES ($1,$2,$3,$4,$5) RETURNING id")
+	stmt, err := database.DB.Prepare("INSERT INTO REDEEM_REQUEST (rollNo,coins,time,status,item) VALUES ($1,$2,$3,$4,$5) RETURNING id")
 	if err != nil {
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
@@ -53,7 +53,7 @@ func NewRedeem(rollNo string, numCoins int, item string) (string, error) {
 func AcceptRedeem(id int, adminRollNo string) error {
 
 	var redeemRequest RedeemRequest
-	err := database.DB.QueryRow("SELECT rollno, coins FROM REDEEM_REQUEST WHERE id=$1", id).Scan(&redeemRequest.RollNo, &redeemRequest.NumCoins)
+	err := database.DB.QueryRow("SELECT rollNo, coins FROM REDEEM_REQUEST WHERE id=$1", id).Scan(&redeemRequest.RollNo, &redeemRequest.NumCoins)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
@@ -64,7 +64,7 @@ func AcceptRedeem(id int, adminRollNo string) error {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins - $1 WHERE rollno=$2 AND coins >= $1", redeemRequest.NumCoins, redeemRequest.RollNo)
+	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins - $1 WHERE rollNo=$2 AND coins >= $1", redeemRequest.NumCoins, redeemRequest.RollNo)
 	if err != nil {
 		tx.Rollback()
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
@@ -110,7 +110,7 @@ func RejectRedeem(id int, adminRollNo string) error {
 }
 
 func GetRedeemListByRollNo(rollNo string) ([]RedeemRequest, error) {
-	rows, err := database.DB.Query("SELECT * FROM REDEEM_REQUEST WHERE rollno=$1", rollNo)
+	rows, err := database.DB.Query("SELECT * FROM REDEEM_REQUEST WHERE rollNo=$1", rollNo)
 	if err != nil {
 		return nil, errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}

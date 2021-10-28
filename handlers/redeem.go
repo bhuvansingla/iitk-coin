@@ -133,7 +133,7 @@ func RedeemListByRollNo(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
-	queriedRollNo := r.URL.Query().Get("rollno")
+	queriedRollNo := r.URL.Query().Get("rollNo")
 
 	requestorRollNo, err := auth.GetRollNoFromRequest(r)
 	if err != nil {

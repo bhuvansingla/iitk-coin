@@ -20,7 +20,7 @@ func GetCoinBalance(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
-	queriedRollNo := r.URL.Query().Get("rollno")
+	queriedRollNo := r.URL.Query().Get("rollNo")
 
 	if err := account.ValidateRollNo(queriedRollNo); err != nil {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid rollNo")
