@@ -11,7 +11,7 @@ import (
 
 type NewRedeemRequest struct {
 	NumCoins       int    `json:"numCoins"`
-	ReceiverRollno string `json:"receiverRollno"`
+	ReceiverRollNo string `json:"receiverRollNo"`
 	Item           string `json:"item"`
 	Otp            string `json:"otp"`
 }
@@ -39,21 +39,24 @@ func NewRedeem(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "error decoding request body")
 	}
 
-	requestorRollno, err := auth.GetRollnoFromRequest(r)
+	requestorRollNo, err := auth.GetRollNoFromRequest(r)
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
+		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid cookie")
 	}
 
-	if err = auth.VerifyOTP(requestorRollno, redeemRequest.Otp); err != nil {
+	if err = auth.VerifyOTP(requestorRollNo, redeemRequest.Otp); err != nil {
 		return err
 	}
 
-	id, err := account.NewRedeem(requestorRollno, redeemRequest.NumCoins, redeemRequest.Item)
+	id, err := account.NewRedeem(requestorRollNo, redeemRequest.NumCoins, redeemRequest.Item)
 	if err != nil {
 		return err
 	}
 
-	json.NewEncoder(w).Encode(&NewRedeemResponse{TxnId: id})
+	err = json.NewEncoder(w).Encode(&NewRedeemResponse{TxnId: id})
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
 
 	return nil
 }
@@ -70,13 +73,12 @@ func AcceptRedeem(w http.ResponseWriter, r *http.Request) error {
 
 	}
 
-	requestorRollno, err := auth.GetRollnoFromRequest(r)
+	requestorRollNo, err := auth.GetRollNoFromRequest(r)
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
+		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid cookie")
 	}
 
-	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
-
+	requestorRole, err := account.GetAccountRoleByRollNo(requestorRollNo)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
@@ -85,7 +87,7 @@ func AcceptRedeem(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(nil, http.StatusUnauthorized, "you are not authorized to accept redeem requests")
 	}
 
-	if err = account.AcceptRedeem(redeemRequest.RedeemId, requestorRollno); err != nil {
+	if err = account.AcceptRedeem(redeemRequest.RedeemId, requestorRollNo); err != nil {
 		return err
 	}
 
@@ -104,14 +106,12 @@ func RejectRedeem(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "error decoding request body")
 	}
 
-	requestorRollno, err := auth.GetRollnoFromRequest(r)
-
+	requestorRollNo, err := auth.GetRollNoFromRequest(r)
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
+		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid cookie")
 	}
 
-	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
-
+	requestorRole, err := account.GetAccountRoleByRollNo(requestorRollNo)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
@@ -120,45 +120,46 @@ func RejectRedeem(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(nil, http.StatusUnauthorized, "you are not authorized to reject redeem requests")
 	}
 
-	if err = account.RejectRedeem(redeemRequest.RedeemId, requestorRollno); err != nil {
+	if err = account.RejectRedeem(redeemRequest.RedeemId, requestorRollNo); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func RedeemListByRollno(w http.ResponseWriter, r *http.Request) error {
+func RedeemListByRollNo(w http.ResponseWriter, r *http.Request) error {
 
 	if r.Method != "POST" {
 		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
-	queriedRollno := r.URL.Query().Get("rollno")
+	queriedRollNo := r.URL.Query().Get("rollNo")
 
-	requestorRollno, err := auth.GetRollnoFromRequest(r)
+	requestorRollNo, err := auth.GetRollNoFromRequest(r)
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
+		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid cookie")
 	}
 
-	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
-
+	requestorRole, err := account.GetAccountRoleByRollNo(requestorRollNo)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollno != queriedRollno) {
+	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollNo != queriedRollNo) {
 		return errors.NewHTTPError(err, http.StatusUnauthorized, "you are not authorized to view the requested redeem requests")
 	}
 
-	redeemList, err := account.GetRedeemListByRollno(queriedRollno)
-
+	redeemList, err := account.GetRedeemListByRollNo(queriedRollNo)
 	if err != nil {
 		return err
 	}
 
-	json.NewEncoder(w).Encode(&RedeemListResponse{
+	err = json.NewEncoder(w).Encode(&RedeemListResponse{
 		RedeemList: redeemList,
 	})
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

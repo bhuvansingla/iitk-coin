@@ -12,16 +12,16 @@ import (
 var privateKey = []byte(viper.GetString("JWT.PRIVATE_KEY"))
 
 type Claims struct {
-	Rollno string `json:"rollno"`
+	RollNo string `json:"rollNo"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(rollno string) (string, error) {
+func GenerateToken(rollNo string) (string, error) {
 
 	expirationTime := time.Now().Add(time.Duration(viper.GetInt("JWT.EXPIRATION_TIME_IN_MIN")) * time.Minute)
 
 	claims := &Claims{
-		Rollno: rollno,
+		RollNo: rollNo,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
@@ -81,15 +81,15 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) func(http.R
 	}
 }
 
-func GetRollnoFromRequest(r *http.Request) (string, error) {
+func GetRollNoFromRequest(r *http.Request) (string, error) {
 	cookie, err := r.Cookie(viper.GetString("JWT.COOKIE_NAME"))
 	if err != nil {
 		return "", err
 	}
-	return GetRollnoFromTokenCookie(cookie)
+	return GetRollNoFromTokenCookie(cookie)
 }
 
-func GetRollnoFromTokenCookie(cookie *http.Cookie) (string, error) {
+func GetRollNoFromTokenCookie(cookie *http.Cookie) (string, error) {
 	token := cookie.Value
 	claims := &Claims{}
 	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
@@ -98,5 +98,5 @@ func GetRollnoFromTokenCookie(cookie *http.Cookie) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return claims.Rollno, nil
+	return claims.RollNo, nil
 }

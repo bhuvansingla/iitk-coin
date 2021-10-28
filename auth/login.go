@@ -8,13 +8,12 @@ import (
 	"github.com/bhuvansingla/iitk-coin/util"
 )
 
-func Login(rollno string, password string) (ok bool, err error) {
-	if err = account.ValidateRollNo(rollno); err != nil {
+func Login(rollNo string, password string) (ok bool, err error) {
+	if err = account.ValidateRollNo(rollNo); err != nil {
 		return false, err
 	}
 
-	userExists, err := account.UserExists(rollno)
-
+	userExists, err := account.UserExists(rollNo)
 	if err != nil {
 		return false, errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
@@ -23,13 +22,12 @@ func Login(rollno string, password string) (ok bool, err error) {
 		return false, errors.NewHTTPError(nil, http.StatusBadRequest, "user account does not exist")
 	}
 
-	passwordFromRollno, err := account.GetStoredPassword(rollno)
-
+	passwordFromRollNo, err := account.GetStoredPassword(rollNo)
 	if err != nil {
 		return false, errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	if !util.CompareHashAndPassword(passwordFromRollno, password) {
+	if !util.CompareHashAndPassword(passwordFromRollNo, password) {
 		return false, errors.NewHTTPError(nil, http.StatusBadRequest, "invalid password")
 	}
 	return true, nil

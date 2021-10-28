@@ -1,6 +1,7 @@
 package account
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"time"
@@ -20,101 +21,110 @@ const (
 )
 
 type RedeemRequest struct {
-	RollNo   string       `field:"rollno"`
+	RollNo   string       `field:"rollNo"`
 	Id       string       `field:"id"`
 	NumCoins int          `field:"coins"`
-	Time     time.Time    `field:"time"`
+	Time     int          `field:"time"`
 	Item     string       `field:"item"`
 	Status   RedeemStatus `field:"status"`
+	ActionByRollNo string `field:"actionByRollNo"`
 }
 
-func NewRedeem(rollno string, numCoins int, item string) (string, error) {
+func NewRedeem(rollNo string, numCoins int, item string) (string, error) {
 	var (
 		redeemSuffix = viper.GetString("TXNID.REDEEM_SUFFIX")
 		txnIDPadding = viper.GetInt("TXNID.PADDING")
 		id int
 	)
 
-	stmt, err := database.DB.Prepare("INSERT INTO REDEEM_REQUEST (rollno,coins,time,status,item) VALUES ($1,$2,$3,$4,$5) RETURNING id")
+	stmt, err := database.DB.Prepare("INSERT INTO REDEEM_REQUEST (rollNo,coins,time,status,item) VALUES ($1,$2,$3,$4,$5) RETURNING id")
 	if err != nil {
-		return "", err
+		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	err = stmt.QueryRow(rollno, numCoins, time.Now().Unix(), Pending, item).Scan(&id)
+	err = stmt.QueryRow(rollNo, numCoins, time.Now().Unix(), Pending, item).Scan(&id)
 	if err != nil {
-		return "", err
+		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 	
 	return fmt.Sprintf("%s%0*d", redeemSuffix, txnIDPadding, id),  nil
 }
 
-func AcceptRedeem(id int, adminRollno string) error {
+func AcceptRedeem(id int, adminRollNo string) error {
 
 	var redeemRequest RedeemRequest
-	err := database.DB.QueryRow("SELECT rollno, coins FROM REDEEM_REQUEST WHERE id=$1", id).Scan(&redeemRequest)
+	err := database.DB.QueryRow("SELECT rollNo, coins FROM REDEEM_REQUEST WHERE id=$1", id).Scan(&redeemRequest.RollNo, &redeemRequest.NumCoins)
 	if err != nil {
-		return err
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	tx, err := database.DB.Begin()
 	if err != nil {
 		tx.Rollback()
-		return err
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins - $1 WHERE rollno=$2 AND coins - $1 >= 0", redeemRequest.NumCoins, redeemRequest.RollNo)
+	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins - $1 WHERE rollNo=$2 AND coins >= $1", redeemRequest.NumCoins, redeemRequest.RollNo)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	rowCnt, err := res.RowsAffected()
 	if err != nil {
 		tx.Rollback()
-		return err
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	if rowCnt == 0 {
 		tx.Rollback()
-		return errors.NewHTTPError(nil, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+		return errors.NewHTTPError(nil, http.StatusBadRequest, "insufficient wallet balance")
+	}
+
+	_, err = tx.Exec("UPDATE REDEEM_REQUEST SET status=$1, actionByRollNo=$2 WHERE id=$3", Approved, adminRollNo, id)
+	if err != nil {
+		tx.Rollback()
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	err = tx.Commit()
 
 	if err != nil {
 		tx.Rollback()
-		return err
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	return nil
 }
 
-func RejectRedeem(id int, adminRollno string) error {
-	stmt, err := database.DB.Prepare("UPDATE REDEEM_REQUEST SET (status,actionByRollno) VALUES ($1,$2) WHERE id=$3")
+func RejectRedeem(id int, adminRollNo string) error {
+	stmt, err := database.DB.Prepare("UPDATE REDEEM_REQUEST SET status=$1, actionByRollNo=$2 WHERE id=$3")
 	if err != nil {
-		return err
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
-	_, err = stmt.Exec(Rejected, adminRollno, id)
+	_, err = stmt.Exec(Rejected, adminRollNo, id)
 	if err != nil {
-		return err
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 	return nil
 }
 
-func GetRedeemListByRollno(rollno string) ([]RedeemRequest, error) {
-	rows, err := database.DB.Query("SELECT * FROM REDEEM_REQUEST WHERE rollno=$1", rollno)
+func GetRedeemListByRollNo(rollNo string) ([]RedeemRequest, error) {
+	rows, err := database.DB.Query("SELECT * FROM REDEEM_REQUEST WHERE rollNo=$1", rollNo)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 	defer rows.Close()
 
 	var redeemRequests []RedeemRequest
 	for rows.Next() {
 		var redeemRequest RedeemRequest
-		err := rows.Scan(&redeemRequest.Id, &redeemRequest.RollNo, &redeemRequest.NumCoins, &redeemRequest.Time, &redeemRequest.Item, &redeemRequest.Status)
+		var adminRollNo sql.NullString
+		err := rows.Scan(&redeemRequest.Id, &redeemRequest.RollNo, &redeemRequest.NumCoins, &redeemRequest.Time, &redeemRequest.Item, &redeemRequest.Status, &adminRollNo)
 		if err != nil {
-			return nil, err
+			return nil, errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		}
+		redeemRequest.ActionByRollNo = adminRollNo.String
 		redeemRequests = append(redeemRequests, redeemRequest)
 	}
 	return redeemRequests, nil

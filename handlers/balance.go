@@ -10,7 +10,7 @@ import (
 )
 
 type GetCoinBalanceResponse struct {
-	RollNo string `json:"rollno"`
+	RollNo string `json:"rollNo"`
 	Coins  int    `json:"coins"`
 }
 
@@ -20,29 +20,29 @@ func GetCoinBalance(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
-	queriedRollno := r.URL.Query().Get("rollno")
+	queriedRollNo := r.URL.Query().Get("rollNo")
 
-	if err := account.ValidateRollNo(queriedRollno); err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid rollno")
+	if err := account.ValidateRollNo(queriedRollNo); err != nil {
+		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid rollNo")
 	}
 
-	requestorRollno, err := auth.GetRollnoFromRequest(r)
+	requestorRollNo, err := auth.GetRollNoFromRequest(r)
 
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
+		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid cookie")
 	}
 
-	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
+	requestorRole, err := account.GetAccountRoleByRollNo(requestorRollNo)
 
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollno == queriedRollno) {
-		return errors.NewHTTPError(nil, http.StatusUnauthorized, "You are not authorized to read this account balance")
+	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollNo == queriedRollNo) {
+		return errors.NewHTTPError(nil, http.StatusUnauthorized, "you are not authorized to read this account balance")
 	}
 
-	userExists, err := account.UserExists(queriedRollno)
+	userExists, err := account.UserExists(queriedRollNo)
 
 	if err != nil {
 		errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
@@ -52,7 +52,7 @@ func GetCoinBalance(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "account does not exist")
 	}
 
-	balance, err := account.GetCoinBalanceByRollNo(queriedRollno)
+	balance, err := account.GetCoinBalanceByRollNo(queriedRollNo)
 
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
@@ -60,7 +60,7 @@ func GetCoinBalance(w http.ResponseWriter, r *http.Request) error {
 
 	json.NewEncoder(w).Encode(&GetCoinBalanceResponse{
 		Coins:  balance,
-		RollNo: queriedRollno,
+		RollNo: queriedRollNo,
 	})
 	return nil
 }

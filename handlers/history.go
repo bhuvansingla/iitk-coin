@@ -11,7 +11,7 @@ import (
 
 type WalletHistoryResponse struct {
 	History []interface{}	`json:"history"`
-	RollNo	string			`json:"rollno"`
+	RollNo	string			`json:"rollNo"`
 }
 
 func WalletHistory(w http.ResponseWriter, r *http.Request) error {
@@ -20,29 +20,27 @@ func WalletHistory(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
-	queriedRollno := r.URL.Query().Get("rollno")
+	queriedRollNo := r.URL.Query().Get("rollNo")
 
-	if err := account.ValidateRollNo(queriedRollno); err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid rollno")
+	if err := account.ValidateRollNo(queriedRollNo); err != nil {
+		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid rollNo")
 	}
 
-	requestorRollno, err := auth.GetRollnoFromRequest(r)
+	requestorRollNo, err := auth.GetRollNoFromRequest(r)
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
+		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid cookie")
 	}
 
-	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
-
+	requestorRole, err := account.GetAccountRoleByRollNo(requestorRollNo)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollno == queriedRollno) {
-		return errors.NewHTTPError(nil, http.StatusUnauthorized, "You are not authorized to read this account history")
+	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollNo == queriedRollNo) {
+		return errors.NewHTTPError(nil, http.StatusUnauthorized, "you are not authorized to read this account history")
 	}
 
-	userExists, err := account.UserExists(queriedRollno)
-
+	userExists, err := account.UserExists(queriedRollNo)
 	if err != nil {
 		errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
@@ -51,15 +49,14 @@ func WalletHistory(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "account does not exist")
 	}
 
-	history, err := account.GetWalletHistoryByRollNo(queriedRollno)
-
+	history, err := account.GetWalletHistoryByRollNo(queriedRollNo)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	json.NewEncoder(w).Encode(&WalletHistoryResponse{
 		History:	history,
-		RollNo:		queriedRollno,
+		RollNo:		queriedRollNo,
 	})
 	return nil
 }

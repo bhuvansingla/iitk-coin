@@ -16,12 +16,12 @@ func (s *smtpServer) Address() string {
 	return s.host + ":" + s.port
 }
 
-func SendOTP(toRollno string, otp string) (err error) {
+func SendOTP(toRollNo string, otp string) (err error) {
 
 	from := viper.GetString("MAIL.FROM")
 	password := viper.GetString("MAIL.PASSWORD")
 	to := []string{
-		toRollno + "@iitk.ac.in",
+		toRollNo + "@iitk.ac.in",
 	}
 	smtpServer := smtpServer{host: viper.GetString("MAIL.HOST"), port: viper.GetString("MAIL.PORT")}
 
@@ -32,9 +32,9 @@ func SendOTP(toRollno string, otp string) (err error) {
 	err = smtp.SendMail(smtpServer.Address(), auth, from, to, message)
 
 	if err != nil {
-		log.Error("Error sending mail: ", err)
+		log.Error("error sending mail: ", err)
 		return err
 	}
-	log.Info("Mail sent")
+	log.Info("Mail sent to ", toRollNo)
 	return nil
 }

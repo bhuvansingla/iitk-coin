@@ -21,7 +21,7 @@ func Connect() (err error) {
 	)
 
 	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s", host, port, user, password, dbname)
-    
+
 	db, err := sql.Open("postgres", psqlconn)
 	if err != nil {
 		log.Error(err.Error())

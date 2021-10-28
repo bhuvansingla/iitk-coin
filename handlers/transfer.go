@@ -11,14 +11,14 @@ import (
 
 type TransferCoinRequest struct {
 	NumCoins       int    `json:"numCoins"`
-	ReceiverRollno string `json:"receiverRollno"`
+	ReceiverRollNo string `json:"receiverRollNo"`
 	Remarks        string `json:"remarks"`
 	Otp            string `json:"otp"`
 }
 
 type TransferTaxRequest struct {
 	NumCoins       int    `json:"numCoins"`
-	ReceiverRollno string `json:"receiverRollno"`
+	ReceiverRollNo string `json:"receiverRollNo"`
 }
 
 type TransferTaxResponse struct {
@@ -41,21 +41,24 @@ func TransferCoins(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "error decoding request body")
 	}
 
-	requestorRollno, err := auth.GetRollnoFromRequest(r)
+	requestorRollNo, err := auth.GetRollNoFromRequest(r)
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
+		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid cookie")
 	}
 
-	if err = auth.VerifyOTP(requestorRollno, transferCoinRequest.Otp); err != nil {
+	if err = auth.VerifyOTP(requestorRollNo, transferCoinRequest.Otp); err != nil {
 		return err
 	}
 
-	id, err := account.TransferCoins(requestorRollno, transferCoinRequest.ReceiverRollno, transferCoinRequest.NumCoins, transferCoinRequest.Remarks)
+	id, err := account.TransferCoins(requestorRollNo, transferCoinRequest.ReceiverRollNo, transferCoinRequest.NumCoins, transferCoinRequest.Remarks)
 	if err != nil {
 		return err
 	}
 
-	json.NewEncoder(w).Encode(&TransferCoinResponse{TxnID: id})
+	err = json.NewEncoder(w).Encode(&TransferCoinResponse{TxnID: id})
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
 
 	return nil
 }
@@ -71,20 +74,23 @@ func TransferTax(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "error decoding request body")
 	}
 
-	requestorRollno, err := auth.GetRollnoFromRequest(r)
+	requestorRollNo, err := auth.GetRollNoFromRequest(r)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid cookie")
 	}
 
-	tax, err := account.CalculateTransferTax(requestorRollno, transferTaxRequest.ReceiverRollno, transferTaxRequest.NumCoins)
+	tax, err := account.CalculateTransferTax(requestorRollNo, transferTaxRequest.ReceiverRollNo, transferTaxRequest.NumCoins)
 	if err != nil {
 		return err
 	}
 
-	json.NewEncoder(w).Encode(TransferTaxResponse{
-		RollNo: requestorRollno,
-		Tax:    tax,
+	err = json.NewEncoder(w).Encode(&TransferTaxResponse{
+			RollNo: requestorRollNo,
+			Tax:    tax,
 	})
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
 	
 	return nil
 }

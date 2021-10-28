@@ -35,26 +35,26 @@ func createTables() (err error) {
 }
 
 func createAccountTable() (err error) {
-	_, err = DB.Exec("create table if not exists ACCOUNT (rollno text, name text, password text, coins int, role int)")
+	_, err = DB.Exec("create table if not exists ACCOUNT (rollNo text, name text, password text, coins int, role int)")
 	return
 }
 
 func createOtpTable() (err error) {
-	_, err = DB.Exec("create table if not exists OTP (rollno text, otp text, created NUMERIC, used boolean)")
+	_, err = DB.Exec("create table if not exists OTP (rollNo text, otp text, created NUMERIC, used boolean)")
 	return
 }
 
 func createTransferHistoryTable() (err error) {
-	_, err = DB.Exec("create table if not exists TRANSFER_HISTORY (id SERIAL PRIMARY KEY NOT NULL, fromRollno text, toRollno text, time NUMERIC, coins int, tax int, remarks text)")
+	_, err = DB.Exec("create table if not exists TRANSFER_HISTORY (id SERIAL PRIMARY KEY NOT NULL, fromRollNo text, toRollNo text, time NUMERIC, coins int, tax int, remarks text)")
 	return
 }
 
 func createRedeemRequestTable() (err error) {
-	_, err = DB.Exec("create table if not exists REDEEM_REQUEST (id SERIAL PRIMARY KEY NOT NULL, rollno text, coins int, time NUMERIC, item text, status text, actionByRollno text)")
+	_, err = DB.Exec("create table if not exists REDEEM_REQUEST (id SERIAL PRIMARY KEY NOT NULL, rollNo text, coins int, time NUMERIC, item text, status text, actionByRollNo text)")
 	return
 }
 
 func createRewardHistoryTable() (err error) {
-	_, err = DB.Exec("create table if not exists REWARD_HISTORY (id SERIAL PRIMARY KEY NOT NULL, rollno text, coins int, time NUMERIC, remarks text)")
+	_, err = DB.Exec("create table if not exists REWARD_HISTORY (id SERIAL PRIMARY KEY NOT NULL, rollNo text, coins int, time NUMERIC, remarks text)")
 	return
 }

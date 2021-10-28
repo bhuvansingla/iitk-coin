@@ -9,7 +9,7 @@ import (
 )
 
 type OtpRequest struct {
-	Rollno string `json:"rollno"`
+	RollNo string `json:"rollNo"`
 }
 
 func GenerateOtp(w http.ResponseWriter, r *http.Request) error {
@@ -23,7 +23,7 @@ func GenerateOtp(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "error decoding request body")
 	}
 
-	if err := auth.GenerateOtp(otpRequest.Rollno); err != nil {
+	if err := auth.GenerateOtp(otpRequest.RollNo); err != nil {
 		return err
 	}
 

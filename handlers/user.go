@@ -10,29 +10,29 @@ import (
 )
 
 type GetNameResponse struct {
-	RollNo string `json:"rollno"`
-	Name  string    `json:"name"`
+	RollNo string   `json:"rollNo"`
+	Name   string   `json:"name"`
 }
 
-func GetNameByRollno(w http.ResponseWriter, r *http.Request) error {
+func GetNameByRollNo(w http.ResponseWriter, r *http.Request) error {
 
 	if r.Method != "GET" {
 		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
-	queriedRollno := r.URL.Query().Get("rollno")
+	queriedRollNo := r.URL.Query().Get("rollNo")
 
-	if err := account.ValidateRollNo(queriedRollno); err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid rollno")
+	if err := account.ValidateRollNo(queriedRollNo); err != nil {
+		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid rollNo")
 	}
 
-	_, err := auth.GetRollnoFromRequest(r)
+	_, err := auth.GetRollNoFromRequest(r)
 
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid cookie")
 	}
 
-	name, err := account.GetNameByRollNo(queriedRollno)
+	name, err := account.GetNameByRollNo(queriedRollNo)
 
 	if err != nil{
 		return errors.NewHTTPError(err, http.StatusBadRequest, "could not find username")
@@ -40,7 +40,7 @@ func GetNameByRollno(w http.ResponseWriter, r *http.Request) error {
 
 	json.NewEncoder(w).Encode(&GetNameResponse{
 		Name:  name,
-		RollNo: queriedRollno,
+		RollNo: queriedRollNo,
 	})
 	return nil
 }
