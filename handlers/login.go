@@ -13,11 +13,11 @@ import (
 
 type LoginResponse struct {
 	IsAdmin bool   `json:"admin"`
-	RollNo  string `json:"rollno"`
+	RollNo  string `json:"rollNo"`
 }
 
 type LoginRequest struct {
-	RollNo   string `json:"rollno"`
+	RollNo   string `json:"rollNo"`
 	Password string `json:"password"`
 }
 
@@ -33,9 +33,8 @@ func Login(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	ok, err := auth.Login(loginRequest.RollNo, loginRequest.Password)
-
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, err.Error())
+		return err
 	}
 
 	if !ok {
@@ -43,7 +42,6 @@ func Login(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	token, err := auth.GenerateToken(loginRequest.RollNo)
-
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
@@ -59,15 +57,17 @@ func Login(w http.ResponseWriter, r *http.Request) error {
 	http.SetCookie(w, cookie)
 
 	isAdmin, err := account.IsAdmin(loginRequest.RollNo)
-
 	if err != nil {
-		return err
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	json.NewEncoder(w).Encode(&LoginResponse{
+	err = json.NewEncoder(w).Encode(&LoginResponse{
 		IsAdmin: isAdmin,
 		RollNo:  loginRequest.RollNo,
 	})
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
 
 	return nil
 }

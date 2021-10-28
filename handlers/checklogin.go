@@ -11,7 +11,7 @@ import (
 
 type CheckLoginResponse struct {
 	IsAdmin bool   `json:"admin"`
-	RollNo  string `json:"rollno"`
+	RollNo  string `json:"rollNo"`
 }
 
 func CheckLogin(w http.ResponseWriter, r *http.Request) error {
@@ -20,19 +20,18 @@ func CheckLogin(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(nil, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	}
 
-	requestorRollno, err := auth.GetRollnoFromRequest(r)
+	requestorRollNo, err := auth.GetRollNoFromRequest(r)
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusBadRequest, "Invalid cookie")
+		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid cookie")
 	}
 
-	isAdmin, err := account.IsAdmin(requestorRollno)
-
+	isAdmin, err := account.IsAdmin(requestorRollNo)
 	if err != nil {
-		return err
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	json.NewEncoder(w).Encode(&CheckLoginResponse{
-		RollNo:  requestorRollno,
+		RollNo:  requestorRollNo,
 		IsAdmin: isAdmin,
 	})
 

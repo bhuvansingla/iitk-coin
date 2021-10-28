@@ -12,82 +12,86 @@ import (
 	"github.com/bhuvansingla/iitk-coin/util"
 
 	"github.com/spf13/viper"
-	log "github.com/sirupsen/logrus"
 )
 
-func GenerateOtp(rollno string) error {
+func GenerateOtp(rollNo string) error {
 
-	if err := account.ValidateRollNo(rollno); err != nil {
+	if err := account.ValidateRollNo(rollNo); err != nil {
 		return err
 	}
 
-	validOtpExists, err := validOtpExists(rollno)
+	validOtpExists, err := validOtpExists(rollNo)
 	if err != nil {
-		return err
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
+
 	if validOtpExists {
-		return errors.NewHTTPError(nil, http.StatusTooManyRequests, "OTP already sent. Please wait for some time.")
+		return errors.NewHTTPError(nil, http.StatusTooManyRequests, "please wait for some time. OTP already sent.")
 	}
 
 	otp := util.RandomOTP()
 
 	stmt, err := database.DB.Prepare("INSERT INTO OTP (rollno, otp, created, used) VALUES ($1,$2,$3,$4)")
 	if err != nil {
-		return err
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	if _, err = stmt.Exec(rollno, otp, time.Now().Unix(), 0); err != nil {
-		return err
+	if _, err = stmt.Exec(rollNo, otp, time.Now().Unix(), 0); err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	if err = mail.SendOTP(rollno, otp); err != nil {
-		return err
+	if err = mail.SendOTP(rollNo, otp); err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
-
-	log.Info(otp)
 
 	return nil
 }
 
-func validOtpExists(rollno string) (bool, error) {
+func validOtpExists(rollNo string) (bool, error) {
 	newRequestWaitTime := viper.GetInt("OTP.NEW_REQUEST_WAIT_TIME_IN_MIN")
 	createdAfter := time.Now().Add(-time.Duration(newRequestWaitTime) * time.Minute).Unix()
 
-	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=$1 AND created > $2 AND used IS FALSE", rollno, createdAfter)
+	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=$1 AND created > $2 AND used IS FALSE", rollNo, createdAfter)
 	var tempScan string
+
 	err := row.Scan(&tempScan)
 	if err == sql.ErrNoRows {
 		return false, nil
 	}
 	if err != nil {
-		return true, err
+		return false, err
 	}
+
 	return true, nil
 }
 
-func markOtpAsUsed(rollno string) error {
-	_, err := database.DB.Exec("UPDATE OTP SET used=$1 WHERE rollno=$2", 1, rollno)
+func markOtpAsUsed(rollNo string) error {
+	_, err := database.DB.Exec("UPDATE OTP SET used=$1 WHERE rollno=$2", 1, rollNo)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func VerifyOTP(rollno string, otp string) (err error) {
+func VerifyOTP(rollNo string, otp string) (err error) {
 	expiryPeriod := viper.GetInt("OTP.EXPIRY_PERIOD_IN_MIN")
 	createdAfter := time.Now().Add(-time.Duration(expiryPeriod) * time.Minute).Unix()
 
-	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=$1 AND created > $2 AND otp=$3 AND used IS FALSE", rollno, createdAfter, otp)
+	row := database.DB.QueryRow("SELECT rollno FROM OTP WHERE rollno=$1 AND created > $2 AND otp=$3 AND used IS FALSE", rollNo, createdAfter, otp)
 	var tempScan string
 	err = row.Scan(&tempScan)
 
 	if err == sql.ErrNoRows {
-		return errors.NewHTTPError(nil, http.StatusUnauthorized, "Invalid OTP")
+		return errors.NewHTTPError(nil, http.StatusUnauthorized, "invalid OTP")
 	}
 	if err != nil {
-		return
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 	
-	err = markOtpAsUsed(rollno)
+	err = markOtpAsUsed(rollNo)
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+	
 	return
 }

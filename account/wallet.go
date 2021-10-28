@@ -44,8 +44,8 @@ type RedeemHistory struct {
 	Status	RedeemStatus		`json:"status"`
 }
 
-func GetCoinBalanceByRollNo(rollno string) (int, error) {
-	row := database.DB.QueryRow("SELECT coins FROM ACCOUNT WHERE rollno=$1", rollno)
+func GetCoinBalanceByRollNo(rollNo string) (int, error) {
+	row := database.DB.QueryRow("SELECT coins FROM ACCOUNT WHERE rollno=$1", rollNo)
 	var coins int
 	if err := row.Scan(&coins); err != nil {
 		return 0, err
@@ -53,58 +53,58 @@ func GetCoinBalanceByRollNo(rollno string) (int, error) {
 	return coins, nil
 }
 
-func GetWalletHistoryByRollNo(rollno string) ([]interface{}, error) {
+func GetWalletHistoryByRollNo(rollNo string) ([]interface{}, error) {
 	queryString := `
 	SELECT history.*
 	FROM (
 		SELECT id,
 			time,
-			"TRANSFER" AS type,
-			fromRollno,
-			toRollno,
+			$2 AS type,
+			fromRollNo,
+			toRollNo,
 			NULL AS rollno,
 			coins,
 			tax,
 			NULL AS item,
 			NULL AS status,
-			NULL AS actionByRollno,
+			NULL AS actionByRollNo,
 			remarks
 		FROM TRANSFER_HISTORY
-		WHERE toRollno = $1 OR fromRollno = $1
+		WHERE toRollNo = $1 OR fromRollNo = $1
 		UNION
 		SELECT id,
 			time,
-			"REDEEM" AS type,
-			NULL AS fromRollno,
-			NULL AS toRollno,
+			$3 AS type,
+			NULL AS fromRollNo,
+			NULL AS toRollNo,
 			rollno,
 			coins,
 			NULL AS tax,
 			item,
 			status,
-			actionByRollno,
+			actionByRollNo,
 			NULL AS remarks
 		FROM REDEEM_REQUEST
 		WHERE rollno = $1
 		UNION
 		SELECT id,
 			time,
-			"REWARD" AS type,
-			NULL AS fromRollno,
-			NULL AS toRollno,
+			$4 AS type,
+			NULL AS fromRollNo,
+			NULL AS toRollNo,
 			rollno,
 			coins,
 			NULL AS tax,
 			NULL AS item,
 			NULL AS status,
-			NULL AS actionByRollno,
+			NULL AS actionByRollNo,
 			remarks
 		FROM REWARD_HISTORY
 		WHERE rollno = $1
 	) history
 	ORDER BY history.time DESC;`
 
-	rows, err := database.DB.Query(queryString, rollno)
+	rows, err := database.DB.Query(queryString, rollNo, TRANSFER, REDEEM, REWARD)
 
 	if err != nil {
 		return nil, err
@@ -124,18 +124,18 @@ func GetWalletHistoryByRollNo(rollno string) ([]interface{}, error) {
 			id 			int
 			time 		int64
 			txType 		TransactionType
-			fromRollno 	sql.NullString
-			toRollno	sql.NullString
-			rollno		sql.NullString
+			fromRollNo 	sql.NullString
+			toRollNo	sql.NullString
+			rollNo		sql.NullString
 			coins		sql.NullInt64
 			tax			sql.NullInt64
 			item		sql.NullString
 			status		sql.NullString
-			actionByRollno sql.NullString
+			actionByRollNo sql.NullString
 			remarks		sql.NullString
 		)
 		
-		if err := rows.Scan(&id, &time, &txType, &fromRollno, &toRollno, &rollno, &coins, &tax, &item, &status, &actionByRollno, &remarks); err != nil {
+		if err := rows.Scan(&id, &time, &txType, &fromRollNo, &toRollNo, &rollNo, &coins, &tax, &item, &status, &actionByRollNo, &remarks); err != nil {
 			return nil, err
 		}
 
@@ -165,8 +165,8 @@ func GetWalletHistoryByRollNo(rollno string) ([]interface{}, error) {
 				Id: fmt.Sprintf("%s%0*d", transferSuffix, txnIDPadding, id),
 				Amount: coins.Int64,
 				Tax: tax.Int64,
-				FromRollNo: fromRollno.String,
-				ToRollNo: toRollno.String,
+				FromRollNo: fromRollNo.String,
+				ToRollNo: toRollNo.String,
 				Remarks: remarks.String,
 			}
 		}

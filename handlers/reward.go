@@ -11,7 +11,7 @@ import (
 
 type RewardRequest struct {
 	Coins	int    `json:"coins"`
-	RollNo	string `json:"rollno"`
+	RollNo	string `json:"rollNo"`
 	Remarks	string `json:"remarks"`
 }
 
@@ -31,19 +31,17 @@ func RewardCoins(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "error decoding request body")
 	}
 
-	requestorRollno, err := auth.GetRollnoFromRequest(r)
+	requestorRollNo, err := auth.GetRollNoFromRequest(r)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid cookie")
 	}
 
-	requestorRole, err := account.GetAccountRoleByRollno(requestorRollno)
-
+	requestorRole, err := account.GetAccountRoleByRollNo(requestorRollNo)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	beneficiaryRole, err := account.GetAccountRoleByRollno(rewardRequest.RollNo)
-
+	beneficiaryRole, err := account.GetAccountRoleByRollNo(rewardRequest.RollNo)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
@@ -65,7 +63,10 @@ func RewardCoins(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	json.NewEncoder(w).Encode(&RewardResponse{TxnId: id})
+	err = json.NewEncoder(w).Encode(&RewardResponse{TxnId: id})
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
 
 	return nil
 }

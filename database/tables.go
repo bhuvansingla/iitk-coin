@@ -45,12 +45,12 @@ func createOtpTable() (err error) {
 }
 
 func createTransferHistoryTable() (err error) {
-	_, err = DB.Exec("create table if not exists TRANSFER_HISTORY (id SERIAL PRIMARY KEY NOT NULL, fromRollno text, toRollno text, time NUMERIC, coins int, tax int, remarks text)")
+	_, err = DB.Exec("create table if not exists TRANSFER_HISTORY (id SERIAL PRIMARY KEY NOT NULL, fromRollNo text, toRollNo text, time NUMERIC, coins int, tax int, remarks text)")
 	return
 }
 
 func createRedeemRequestTable() (err error) {
-	_, err = DB.Exec("create table if not exists REDEEM_REQUEST (id SERIAL PRIMARY KEY NOT NULL, rollno text, coins int, time NUMERIC, item text, status text, actionByRollno text)")
+	_, err = DB.Exec("create table if not exists REDEEM_REQUEST (id SERIAL PRIMARY KEY NOT NULL, rollno text, coins int, time NUMERIC, item text, status text, actionByRollNo text)")
 	return
 }
 
