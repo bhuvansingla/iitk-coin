@@ -35,7 +35,7 @@ func GetCoinBalance(w http.ResponseWriter, r *http.Request) error {
 	requestorRole, err := account.GetAccountRoleByRollNo(requestorRollNo)
 
 	if err != nil {
-		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+		return err
 	}
 
 	if !(requestorRole == account.GeneralSecretary || requestorRole == account.AssociateHead || requestorRollNo == queriedRollNo) {

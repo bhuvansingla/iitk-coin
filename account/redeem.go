@@ -54,7 +54,9 @@ func AcceptRedeem(id int, adminRollNo string) error {
 
 	var redeemRequest RedeemRequest
 	err := database.DB.QueryRow("SELECT rollNo, coins FROM REDEEM_REQUEST WHERE id=$1", id).Scan(&redeemRequest.RollNo, &redeemRequest.NumCoins)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		return errors.NewHTTPError(err, http.StatusNotFound, "invalid redeem ID")
+	} else if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
@@ -102,10 +104,20 @@ func RejectRedeem(id int, adminRollNo string) error {
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
-	_, err = stmt.Exec(Rejected, adminRollNo, id)
+	res, err := stmt.Exec(Rejected, adminRollNo, id)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
+
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+
+	if rowCnt == 0 {
+		return errors.NewHTTPError(nil, http.StatusBadRequest, "invalid redeem ID")
+	}
+
 	return nil
 }
 
