@@ -2,10 +2,8 @@ package account
 
 import (
 	"database/sql"
-	"fmt"
-
+	
 	"github.com/bhuvansingla/iitk-coin/database"
-	"github.com/spf13/viper"
 )
 
 type TransactionType string
@@ -111,13 +109,6 @@ func GetWalletHistoryByRollNo(rollNo string) ([]interface{}, error) {
 	}
 
 	var history []interface{}
-
-	var (
-		redeemSuffix = viper.GetString("TXNID.REDEEM_SUFFIX")
-		rewardSuffix = viper.GetString("TXNID.REWARD_SUFFIX")
-		transferSuffix = viper.GetString("TXNID.TRANSFER_SUFFIX")
-		txnIDPadding = viper.GetInt("TXNID.PADDING")
-	)
 	
 	for rows.Next() {
 		var (
@@ -145,7 +136,7 @@ func GetWalletHistoryByRollNo(rollNo string) ([]interface{}, error) {
 			historyItem = RewardHistory{
 				Type: txType,
 				Time: time,
-				Id: fmt.Sprintf("%s%0*d", rewardSuffix, txnIDPadding, id),
+				Id: formatTxnID(id, REWARD),
 				Amount: coins.Int64,
 				Remarks: remarks.String,
 			}
@@ -153,7 +144,7 @@ func GetWalletHistoryByRollNo(rollNo string) ([]interface{}, error) {
 			historyItem = RedeemHistory{
 				Type: txType,
 				Time: time,
-				Id: fmt.Sprintf("%s%0*d", redeemSuffix, txnIDPadding, id),
+				Id: formatTxnID(id, REDEEM),
 				Amount: coins.Int64,
 				Remarks: remarks.String,
 				Status: RedeemStatus(status.String),
@@ -162,7 +153,7 @@ func GetWalletHistoryByRollNo(rollNo string) ([]interface{}, error) {
 			historyItem = TransferHistory{
 				Type: txType,
 				Time: time,
-				Id: fmt.Sprintf("%s%0*d", transferSuffix, txnIDPadding, id),
+				Id: formatTxnID(id, TRANSFER),
 				Amount: coins.Int64,
 				Tax: tax.Int64,
 				FromRollNo: fromRollNo.String,
