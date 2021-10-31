@@ -9,10 +9,20 @@ import (
 type TransactionType string
 
 const (
-	REWARD 		TransactionType = "REWARD"
 	REDEEM 		TransactionType = "REDEEM"
+	REWARD 		TransactionType = "REWARD"
 	TRANSFER 	TransactionType = "TRANSFER"
 )
+
+type RedeemHistory struct {
+	Type	TransactionType 	`json:"type"`
+	Time	int64				`json:"timeStamp"`
+	Id		string				`json:"txnID"`
+	Amount	int64				`json:"amount"`
+	Item 	string				`json:"item"`
+	Status	RedeemStatus		`json:"status"`
+	ActionByRollNo string		`json:"actionByRollNo"`
+}
 
 type RewardHistory struct {
 	Type	TransactionType 	`json:"type"`
@@ -31,15 +41,6 @@ type TransferHistory struct {
 	FromRollNo 	string			`json:"fromRollNo"`
 	ToRollNo 	string			`json:"toRollNo"`
 	Remarks 	string			`json:"remarks"`
-}
-
-type RedeemHistory struct {
-	Type	TransactionType 	`json:"type"`
-	Time	int64				`json:"timeStamp"`
-	Id		string				`json:"txnID"`
-	Amount	int64				`json:"amount"`
-	Remarks string				`json:"remarks"`
-	Status	RedeemStatus		`json:"status"`
 }
 
 func GetCoinBalanceByRollNo(rollNo string) (int, error) {
@@ -131,7 +132,18 @@ func GetWalletHistoryByRollNo(rollNo string) ([]interface{}, error) {
 		}
 
 		var historyItem interface{}
+		
 		switch txType {
+		case REDEEM:
+			historyItem = RedeemHistory{
+				Type: txType,
+				Time: time,
+				Id: formatTxnID(id, REDEEM),
+				Amount: coins.Int64,
+				Item: item.String,
+				Status: RedeemStatus(status.String),
+				ActionByRollNo: actionByRollNo.String,
+			}
 		case REWARD:
 			historyItem = RewardHistory{
 				Type: txType,
@@ -139,15 +151,6 @@ func GetWalletHistoryByRollNo(rollNo string) ([]interface{}, error) {
 				Id: formatTxnID(id, REWARD),
 				Amount: coins.Int64,
 				Remarks: remarks.String,
-			}
-		case REDEEM:
-			historyItem = RedeemHistory{
-				Type: txType,
-				Time: time,
-				Id: formatTxnID(id, REDEEM),
-				Amount: coins.Int64,
-				Remarks: remarks.String,
-				Status: RedeemStatus(status.String),
 			}
 		case TRANSFER:
 			historyItem = TransferHistory{
