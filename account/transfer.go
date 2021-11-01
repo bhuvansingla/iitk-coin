@@ -1,7 +1,6 @@
 package account
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -86,11 +85,7 @@ func TransferCoins(fromRollNo string, toRollNo string, numCoins int, remarks str
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	var (
-		transferSuffix = viper.GetString("TXNID.TRANSFER_SUFFIX")
-		txnIDPadding = viper.GetInt("TXNID.PADDING")
-		id int
-	)
+	var id int
 
 	err = stmt.QueryRow(fromRollNo, toRollNo, time.Now().Unix(), numCoins, tax, remarks).Scan(&id);
 	
@@ -105,7 +100,7 @@ func TransferCoins(fromRollNo string, toRollNo string, numCoins int, remarks str
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	return fmt.Sprintf("%s%0*d", transferSuffix, txnIDPadding, id), nil
+	return formatTxnID(id, TRANSFER), nil
 }
 
 func CalculateTransferTax(fromRollNo string, toRollNo string, numCoins int) (int, error) {

@@ -2,13 +2,11 @@ package account
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/bhuvansingla/iitk-coin/database"
 	"github.com/bhuvansingla/iitk-coin/errors"
-	"github.com/spf13/viper"
 )
 
 type RedeemStatus string
@@ -31,11 +29,7 @@ type RedeemRequest struct {
 }
 
 func NewRedeem(rollNo string, numCoins int, item string) (string, error) {
-	var (
-		redeemSuffix = viper.GetString("TXNID.REDEEM_SUFFIX")
-		txnIDPadding = viper.GetInt("TXNID.PADDING")
-		id int
-	)
+	var id int
 
 	stmt, err := database.DB.Prepare("INSERT INTO REDEEM_REQUEST (rollNo,coins,time,status,item) VALUES ($1,$2,$3,$4,$5) RETURNING id")
 	if err != nil {
@@ -47,14 +41,16 @@ func NewRedeem(rollNo string, numCoins int, item string) (string, error) {
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 	
-	return fmt.Sprintf("%s%0*d", redeemSuffix, txnIDPadding, id),  nil
+	return formatTxnID(id, REDEEM),  nil
 }
 
 func AcceptRedeem(id int, adminRollNo string) error {
 
 	var redeemRequest RedeemRequest
 	err := database.DB.QueryRow("SELECT rollNo, coins FROM REDEEM_REQUEST WHERE id=$1", id).Scan(&redeemRequest.RollNo, &redeemRequest.NumCoins)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		return errors.NewHTTPError(err, http.StatusNotFound, "invalid redeem ID")
+	} else if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
@@ -102,10 +98,20 @@ func RejectRedeem(id int, adminRollNo string) error {
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
-	_, err = stmt.Exec(Rejected, adminRollNo, id)
+	res, err := stmt.Exec(Rejected, adminRollNo, id)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
+
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+
+	if rowCnt == 0 {
+		return errors.NewHTTPError(nil, http.StatusBadRequest, "invalid redeem ID")
+	}
+
 	return nil
 }
 

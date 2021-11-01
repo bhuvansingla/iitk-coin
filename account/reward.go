@@ -1,7 +1,6 @@
 package account
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -59,11 +58,7 @@ func AddCoins(rollNo string, coins int, remarks string) (string, error) {
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	var (
-		rewardSuffix = viper.GetString("TXNID.REWARD_SUFFIX")
-		txnIDPadding = viper.GetInt("TXNID.PADDING")
-		id int
-	)
+	var id int
 
 	err = stmt.QueryRow(rollNo, coins, time.Now().Unix(), remarks).Scan(&id);
 	
@@ -79,5 +74,5 @@ func AddCoins(rollNo string, coins int, remarks string) (string, error) {
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	return fmt.Sprintf("%s%0*d", rewardSuffix, txnIDPadding, id), nil
+	return formatTxnID(id, REWARD), nil
 }

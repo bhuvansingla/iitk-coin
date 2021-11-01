@@ -48,8 +48,12 @@ func GetAccountRoleByRollNo(rollNo string) (Role, error) {
 	row := database.DB.QueryRow("SELECT role FROM ACCOUNT WHERE rollNo=$1", rollNo)
 	var role Role
 	err := row.Scan(&role)
+
+	if err == sql.ErrNoRows {
+		return role, errors.NewHTTPError(err, http.StatusBadRequest, "account doesnot exist")
+	}
 	if err != nil {
-		return NormalUser, err
+		return role, errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 	return role, nil
 }
@@ -94,7 +98,7 @@ func ValidatePassword(password string) error {
 func IsAdmin(rollNo string) (bool, error) {
 	role, err := GetAccountRoleByRollNo(rollNo)
 	if err != nil {
-		return false, errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+		return false, err
 	}
 	if role == GeneralSecretary || role == AssociateHead || role == CoreTeamMember {
 		return true, nil

@@ -50,6 +50,10 @@ func TransferCoins(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	if (requestorRollNo == transferCoinRequest.ReceiverRollNo) {
+		return errors.NewHTTPError(nil, http.StatusBadRequest, "cannot transfer to self")
+	}
+
 	id, err := account.TransferCoins(requestorRollNo, transferCoinRequest.ReceiverRollNo, transferCoinRequest.NumCoins, transferCoinRequest.Remarks)
 	if err != nil {
 		return err
@@ -77,6 +81,10 @@ func TransferTax(w http.ResponseWriter, r *http.Request) error {
 	requestorRollNo, err := auth.GetRollNoFromRequest(r)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusBadRequest, "invalid cookie")
+	}
+
+	if (requestorRollNo == transferTaxRequest.ReceiverRollNo) {
+		return errors.NewHTTPError(nil, http.StatusBadRequest, "cannot transfer to self")
 	}
 
 	tax, err := account.CalculateTransferTax(requestorRollNo, transferTaxRequest.ReceiverRollNo, transferTaxRequest.NumCoins)

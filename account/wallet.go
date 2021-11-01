@@ -2,19 +2,27 @@ package account
 
 import (
 	"database/sql"
-	"fmt"
-
+	
 	"github.com/bhuvansingla/iitk-coin/database"
-	"github.com/spf13/viper"
 )
 
 type TransactionType string
 
 const (
-	REWARD 		TransactionType = "REWARD"
 	REDEEM 		TransactionType = "REDEEM"
+	REWARD 		TransactionType = "REWARD"
 	TRANSFER 	TransactionType = "TRANSFER"
 )
+
+type RedeemHistory struct {
+	Type	TransactionType 	`json:"type"`
+	Time	int64				`json:"timeStamp"`
+	Id		string				`json:"txnID"`
+	Amount	int64				`json:"amount"`
+	Item 	string				`json:"item"`
+	Status	RedeemStatus		`json:"status"`
+	ActionByRollNo string		`json:"actionByRollNo"`
+}
 
 type RewardHistory struct {
 	Type	TransactionType 	`json:"type"`
@@ -33,15 +41,6 @@ type TransferHistory struct {
 	FromRollNo 	string			`json:"fromRollNo"`
 	ToRollNo 	string			`json:"toRollNo"`
 	Remarks 	string			`json:"remarks"`
-}
-
-type RedeemHistory struct {
-	Type	TransactionType 	`json:"type"`
-	Time	int64				`json:"timeStamp"`
-	Id		string				`json:"txnID"`
-	Amount	int64				`json:"amount"`
-	Remarks string				`json:"remarks"`
-	Status	RedeemStatus		`json:"status"`
 }
 
 func GetCoinBalanceByRollNo(rollNo string) (int, error) {
@@ -111,13 +110,6 @@ func GetWalletHistoryByRollNo(rollNo string) ([]interface{}, error) {
 	}
 
 	var history []interface{}
-
-	var (
-		redeemSuffix = viper.GetString("TXNID.REDEEM_SUFFIX")
-		rewardSuffix = viper.GetString("TXNID.REWARD_SUFFIX")
-		transferSuffix = viper.GetString("TXNID.TRANSFER_SUFFIX")
-		txnIDPadding = viper.GetInt("TXNID.PADDING")
-	)
 	
 	for rows.Next() {
 		var (
@@ -140,29 +132,31 @@ func GetWalletHistoryByRollNo(rollNo string) ([]interface{}, error) {
 		}
 
 		var historyItem interface{}
+		
 		switch txType {
-		case REWARD:
-			historyItem = RewardHistory{
-				Type: txType,
-				Time: time,
-				Id: fmt.Sprintf("%s%0*d", rewardSuffix, txnIDPadding, id),
-				Amount: coins.Int64,
-				Remarks: remarks.String,
-			}
 		case REDEEM:
 			historyItem = RedeemHistory{
 				Type: txType,
 				Time: time,
-				Id: fmt.Sprintf("%s%0*d", redeemSuffix, txnIDPadding, id),
+				Id: formatTxnID(id, REDEEM),
+				Amount: coins.Int64,
+				Item: item.String,
+				Status: RedeemStatus(status.String),
+				ActionByRollNo: actionByRollNo.String,
+			}
+		case REWARD:
+			historyItem = RewardHistory{
+				Type: txType,
+				Time: time,
+				Id: formatTxnID(id, REWARD),
 				Amount: coins.Int64,
 				Remarks: remarks.String,
-				Status: RedeemStatus(status.String),
 			}
 		case TRANSFER:
 			historyItem = TransferHistory{
 				Type: txType,
 				Time: time,
-				Id: fmt.Sprintf("%s%0*d", transferSuffix, txnIDPadding, id),
+				Id: formatTxnID(id, TRANSFER),
 				Amount: coins.Int64,
 				Tax: tax.Int64,
 				FromRollNo: fromRollNo.String,
