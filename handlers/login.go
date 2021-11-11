@@ -41,15 +41,14 @@ func Login(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusUnauthorized, "invalid credentials")
 	}
 
-	token, err := auth.GenerateToken(loginRequest.RollNo)
+	token, err := auth.GenerateAccessToken(loginRequest.RollNo)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	cookie := &http.Cookie{
-		Name:     viper.GetString("JWT.COOKIE_NAME"),
+		Name:     viper.GetString("JWT.ACCESS_TOKEN.NAME"),
 		Value:    token,
-		Expires:  time.Now().Add(time.Duration(viper.GetInt("JWT.EXPIRATION_TIME_IN_MIN")) * time.Minute),
 		HttpOnly: true,
 		Path:     "/",
 	}
@@ -74,7 +73,7 @@ func Login(w http.ResponseWriter, r *http.Request) error {
 
 func Logout(w http.ResponseWriter, r *http.Request) error {
 	http.SetCookie(w, &http.Cookie{
-		Name:     viper.GetString("JWT.COOKIE_NAME"),
+		Name:     viper.GetString("JWT.ACCESS_TOKEN.NAME"),
 		Value:    "",
 		Expires:  time.Now(),
 		HttpOnly: true,
