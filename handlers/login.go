@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/bhuvansingla/iitk-coin/account"
 	"github.com/bhuvansingla/iitk-coin/auth"
@@ -41,28 +40,31 @@ func Login(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(err, http.StatusUnauthorized, "invalid credentials")
 	}
 
-	token, err := auth.GenerateAccessToken(loginRequest.RollNo)
+	return setCookiesAndRespond(loginRequest.RollNo, w)
+}
+
+func setCookiesAndRespond(rollNo string, w http.ResponseWriter) error {
+
+	accessToken, err := auth.GenerateAccessToken(rollNo)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	cookie := &http.Cookie{
-		Name:     viper.GetString("JWT.ACCESS_TOKEN.NAME"),
-		Value:    token,
-		HttpOnly: true,
-		Path:     "/",
+	refreshToken, err := auth.GenerateRefreshToken(rollNo)
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	http.SetCookie(w, cookie)
+	setCookies(w, accessToken, refreshToken)
 
-	isAdmin, err := account.IsAdmin(loginRequest.RollNo)
+	isAdmin, err := account.IsAdmin(rollNo)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
 	err = json.NewEncoder(w).Encode(&LoginResponse{
 		IsAdmin: isAdmin,
-		RollNo:  loginRequest.RollNo,
+		RollNo:  rollNo,
 	})
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
@@ -71,13 +73,46 @@ func Login(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func Logout(w http.ResponseWriter, r *http.Request) error {
-	http.SetCookie(w, &http.Cookie{
+func setCookies(w http.ResponseWriter, accessToken string, refreshToken string) {
+	cookie := &http.Cookie{
 		Name:     viper.GetString("JWT.ACCESS_TOKEN.NAME"),
-		Value:    "",
-		Expires:  time.Now(),
+		Value:    accessToken,
 		HttpOnly: true,
 		Path:     "/",
-	})
+	}
+
+	http.SetCookie(w, cookie)
+
+	cookie = &http.Cookie{
+		Name:     viper.GetString("JWT.REFRESH_TOKEN.NAME"),
+		Value:    refreshToken,
+		HttpOnly: true,
+		Path:     "/auth",
+	}
+
+	http.SetCookie(w, cookie)
+}
+
+func Logout(w http.ResponseWriter, r *http.Request) error {
+
+	cookie, err := r.Cookie(viper.GetString("JWT.REFRESH_TOKEN.NAME"))
+	if err != nil {
+		setCookies(w, "", "")
+		return nil
+	}
+
+	rollNo, err := auth.GetRollNoFromTokenCookie(cookie)
+	if err != nil {
+		setCookies(w, "", "")
+		return nil
+	}
+
+	setCookies(w, "", "")
+
+	err = account.DeleteToken(rollNo)
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+
 	return nil
 }

@@ -31,11 +31,16 @@ func createTables() (err error) {
 		log.Error(err.Error())
 		return
 	}
+	err = createRefreshTokenTable()
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
 	return
 }
 
 func createAccountTable() (err error) {
-	_, err = DB.Exec("create table if not exists ACCOUNT (rollNo text, name text, password text, coins int, role int)")
+	_, err = DB.Exec("create table if not exists ACCOUNT (rollNo text PRIMARY KEY NOT NULL, name text, password text, coins int, role int)")
 	return
 }
 
@@ -56,5 +61,10 @@ func createRedeemRequestTable() (err error) {
 
 func createRewardHistoryTable() (err error) {
 	_, err = DB.Exec("create table if not exists REWARD_HISTORY (id SERIAL PRIMARY KEY NOT NULL, rollNo text, coins int, time NUMERIC, remarks text)")
+	return
+}
+
+func createRefreshTokenTable() (err error) {
+	_, err = DB.Exec("create table if not exists REFRESH_TOKEN (rollNo text PRIMARY KEY NOT NULL, token text)")
 	return
 }
