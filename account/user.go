@@ -20,14 +20,27 @@ const (
 func Create(rollNo string, hashedPasssword string, name string) error {
 
 	role := NormalUser
+
 	stmt, err := database.DB.Prepare("INSERT INTO ACCOUNT (rollNo, name, password, coins, role) VALUES ($1, $2, $3, $4, $5)")
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
+
 	_, err = stmt.Exec(rollNo, name, hashedPasssword, 0, role)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
+
+	stmt, err = database.DB.Prepare("INSERT INTO REFRESH_TOKEN (rollNo, token) VALUES ($1, $2)")
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+
+	_, err = stmt.Exec(rollNo, "")
+	if err != nil {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+
 	return nil
 }
 
