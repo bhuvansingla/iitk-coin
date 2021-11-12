@@ -8,7 +8,7 @@ import (
 	"github.com/bhuvansingla/iitk-coin/errors"
 )
 
-type Role int
+type Role int64
 
 const (
 	NormalUser       Role = 0

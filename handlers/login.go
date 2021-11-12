@@ -49,7 +49,7 @@ func Login(w http.ResponseWriter, r *http.Request) error {
 	cookie := &http.Cookie{
 		Name:     viper.GetString("JWT.COOKIE_NAME"),
 		Value:    token,
-		Expires:  time.Now().Add(time.Duration(viper.GetInt("JWT.EXPIRATION_TIME_IN_MIN")) * time.Minute),
+		Expires:  time.Now().Add(time.Duration(viper.GetInt64("JWT.EXPIRATION_TIME_IN_MIN")) * time.Minute),
 		HttpOnly: true,
 		Path:     "/",
 	}

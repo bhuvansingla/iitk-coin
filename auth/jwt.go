@@ -18,7 +18,7 @@ type Claims struct {
 
 func GenerateToken(rollNo string) (string, error) {
 
-	expirationTime := time.Now().Add(time.Duration(viper.GetInt("JWT.EXPIRATION_TIME_IN_MIN")) * time.Minute)
+	expirationTime := time.Now().Add(time.Duration(viper.GetInt64("JWT.EXPIRATION_TIME_IN_MIN")) * time.Minute)
 
 	claims := &Claims{
 		RollNo: rollNo,
@@ -77,7 +77,7 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) func(http.R
 			w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
 			return
 		}
-		
+
 	}
 }
 

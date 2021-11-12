@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func AddCoins(rollNo string, coins int, remarks string) (string, error) {
+func AddCoins(rollNo string, coins int64, remarks string) (string, error) {
 
 	if err := validateCoinValue(coins); err != nil {
 		return "", err
@@ -31,7 +31,7 @@ func AddCoins(rollNo string, coins int, remarks string) (string, error) {
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	limit := viper.GetInt("WALLET.UPPER_COIN_LIMIT")
+	limit := viper.GetInt64("WALLET.UPPER_COIN_LIMIT")
 
 	res, err := tx.Exec("UPDATE ACCOUNT SET coins = coins + $1 WHERE rollNo=$2 AND coins + $1 <= $3", coins, rollNo, limit)
 
@@ -58,10 +58,10 @@ func AddCoins(rollNo string, coins int, remarks string) (string, error) {
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	var id int
+	var id int64
 
 	err = stmt.QueryRow(rollNo, coins, time.Now().Unix(), remarks).Scan(&id);
-	
+
 	if err != nil {
 		tx.Rollback()
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))

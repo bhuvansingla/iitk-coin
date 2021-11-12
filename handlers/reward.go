@@ -10,7 +10,7 @@ import (
 )
 
 type RewardRequest struct {
-	Coins	int    `json:"coins"`
+	Coins	int64    `json:"coins"`
 	RollNo	string `json:"rollNo"`
 	Remarks	string `json:"remarks"`
 }

@@ -2,7 +2,7 @@ package account
 
 import (
 	"database/sql"
-	
+
 	"github.com/bhuvansingla/iitk-coin/database"
 )
 
@@ -43,9 +43,9 @@ type TransferHistory struct {
 	Remarks 	string			`json:"remarks"`
 }
 
-func GetCoinBalanceByRollNo(rollNo string) (int, error) {
+func GetCoinBalanceByRollNo(rollNo string) (int64, error) {
 	row := database.DB.QueryRow("SELECT coins FROM ACCOUNT WHERE rollNo=$1", rollNo)
-	var coins int
+	var coins int64
 	if err := row.Scan(&coins); err != nil {
 		return 0, err
 	}
@@ -110,10 +110,10 @@ func GetWalletHistoryByRollNo(rollNo string) ([]interface{}, error) {
 	}
 
 	var history []interface{}
-	
+
 	for rows.Next() {
 		var (
-			id 			int
+			id 			int64
 			time 		int64
 			txType 		TransactionType
 			fromRollNo 	sql.NullString
@@ -126,13 +126,13 @@ func GetWalletHistoryByRollNo(rollNo string) ([]interface{}, error) {
 			actionByRollNo sql.NullString
 			remarks		sql.NullString
 		)
-		
+
 		if err := rows.Scan(&id, &time, &txType, &fromRollNo, &toRollNo, &rollNo, &coins, &tax, &item, &status, &actionByRollNo, &remarks); err != nil {
 			return nil, err
 		}
 
 		var historyItem interface{}
-		
+
 		switch txType {
 		case REDEEM:
 			historyItem = RedeemHistory{

@@ -10,20 +10,20 @@ import (
 )
 
 type TransferCoinRequest struct {
-	NumCoins       int    `json:"numCoins"`
+	NumCoins       int64    `json:"numCoins"`
 	ReceiverRollNo string `json:"receiverRollNo"`
 	Remarks        string `json:"remarks"`
 	Otp            string `json:"otp"`
 }
 
 type TransferTaxRequest struct {
-	NumCoins       int    `json:"numCoins"`
+	NumCoins       int64    `json:"numCoins"`
 	ReceiverRollNo string `json:"receiverRollNo"`
 }
 
 type TransferTaxResponse struct {
 	RollNo string `json:"rollNo"`
-	Tax    int    `json:"tax"`
+	Tax    int64    `json:"tax"`
 }
 
 type TransferCoinResponse struct {
@@ -99,6 +99,6 @@ func TransferTax(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
-	
+
 	return nil
 }

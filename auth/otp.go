@@ -48,7 +48,7 @@ func GenerateOtp(rollNo string) error {
 }
 
 func validOtpExists(rollNo string) (bool, error) {
-	newRequestWaitTime := viper.GetInt("OTP.NEW_REQUEST_WAIT_TIME_IN_MIN")
+	newRequestWaitTime := viper.GetInt64("OTP.NEW_REQUEST_WAIT_TIME_IN_MIN")
 	createdAfter := time.Now().Add(-time.Duration(newRequestWaitTime) * time.Minute).Unix()
 
 	row := database.DB.QueryRow("SELECT rollNo FROM OTP WHERE rollNo=$1 AND created > $2 AND used IS FALSE", rollNo, createdAfter)
@@ -74,7 +74,7 @@ func markOtpAsUsed(rollNo string) error {
 }
 
 func VerifyOTP(rollNo string, otp string) (err error) {
-	expiryPeriod := viper.GetInt("OTP.EXPIRY_PERIOD_IN_MIN")
+	expiryPeriod := viper.GetInt64("OTP.EXPIRY_PERIOD_IN_MIN")
 	createdAfter := time.Now().Add(-time.Duration(expiryPeriod) * time.Minute).Unix()
 
 	row := database.DB.QueryRow("SELECT rollNo FROM OTP WHERE rollNo=$1 AND created > $2 AND otp=$3 AND used IS FALSE", rollNo, createdAfter, otp)
@@ -87,11 +87,11 @@ func VerifyOTP(rollNo string, otp string) (err error) {
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
-	
+
 	err = markOtpAsUsed(rollNo)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
-	
+
 	return
 }

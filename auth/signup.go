@@ -10,7 +10,7 @@ import (
 )
 
 func Signup(rollNo string, name string, password string, otp string) error {
-	
+
 	userExists, err := account.UserExists(rollNo)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))

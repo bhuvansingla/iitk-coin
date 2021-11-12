@@ -11,7 +11,7 @@ import (
 
 type GetCoinBalanceResponse struct {
 	RollNo string `json:"rollNo"`
-	Coins  int    `json:"coins"`
+	Coins  int64    `json:"coins"`
 }
 
 func GetCoinBalance(w http.ResponseWriter, r *http.Request) error {

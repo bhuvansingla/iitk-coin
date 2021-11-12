@@ -8,14 +8,14 @@ import (
 	"github.com/spf13/viper"
 )
 
-func validateCoinValue(coins int) error {
+func validateCoinValue(coins int64) error {
 	if coins <= 0 {
 		return errors.NewHTTPError(nil, http.StatusBadRequest, "coin value must be greater than 0")
 	}
 	return nil
 }
 
-func formatTxnID(id int, txnType TransactionType) string {
+func formatTxnID(id int64, txnType TransactionType) string {
 	suffix := ""
 	switch txnType {
 		case REWARD:
@@ -27,7 +27,7 @@ func formatTxnID(id int, txnType TransactionType) string {
 		default:
 			suffix = "TXN"
 	}
-	txnIDPadding := viper.GetInt("TXNID.PADDING")
+	txnIDPadding := viper.GetInt64("TXNID.PADDING")
 
-	return fmt.Sprintf("%s%0*d", suffix, txnIDPadding, id)	
+	return fmt.Sprintf("%s%0*d", suffix, txnIDPadding, id)
 }

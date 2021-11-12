@@ -21,15 +21,15 @@ const (
 type RedeemRequest struct {
 	RollNo   string       `field:"rollNo"`
 	Id       string       `field:"id"`
-	NumCoins int          `field:"coins"`
-	Time     int          `field:"time"`
+	NumCoins int64          `field:"coins"`
+	Time     int64          `field:"time"`
 	Item     string       `field:"item"`
 	Status   RedeemStatus `field:"status"`
 	ActionByRollNo string `field:"actionByRollNo"`
 }
 
-func NewRedeem(rollNo string, numCoins int, item string) (string, error) {
-	var id int
+func NewRedeem(rollNo string, numCoins int64, item string) (string, error) {
+	var id int64
 
 	stmt, err := database.DB.Prepare("INSERT INTO REDEEM_REQUEST (rollNo,coins,time,status,item) VALUES ($1,$2,$3,$4,$5) RETURNING id")
 	if err != nil {
@@ -40,11 +40,11 @@ func NewRedeem(rollNo string, numCoins int, item string) (string, error) {
 	if err != nil {
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
-	
+
 	return formatTxnID(id, REDEEM),  nil
 }
 
-func AcceptRedeem(id int, adminRollNo string) error {
+func AcceptRedeem(id int64, adminRollNo string) error {
 
 	var redeemRequest RedeemRequest
 	err := database.DB.QueryRow("SELECT rollNo, coins FROM REDEEM_REQUEST WHERE id=$1", id).Scan(&redeemRequest.RollNo, &redeemRequest.NumCoins)
@@ -93,7 +93,7 @@ func AcceptRedeem(id int, adminRollNo string) error {
 	return nil
 }
 
-func RejectRedeem(id int, adminRollNo string) error {
+func RejectRedeem(id int64, adminRollNo string) error {
 	stmt, err := database.DB.Prepare("UPDATE REDEEM_REQUEST SET status=$1, actionByRollNo=$2 WHERE id=$3")
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))

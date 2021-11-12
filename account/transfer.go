@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func TransferCoins(fromRollNo string, toRollNo string, numCoins int, remarks string) (string, error) {
+func TransferCoins(fromRollNo string, toRollNo string, numCoins int64, remarks string) (string, error) {
 
 	err := validateCoinValue(numCoins)
 	if err != nil {
@@ -53,7 +53,7 @@ func TransferCoins(fromRollNo string, toRollNo string, numCoins int, remarks str
 		return "", errors.NewHTTPError(nil, http.StatusBadRequest, "insufficient wallet balance")
 	}
 
-	limit := viper.GetInt("WALLET.UPPER_COIN_LIMIT")
+	limit := viper.GetInt64("WALLET.UPPER_COIN_LIMIT")
 	tax, err := CalculateTransferTax(fromRollNo, toRollNo, numCoins)
 	if err != nil {
 		tx.Rollback()
@@ -85,10 +85,10 @@ func TransferCoins(fromRollNo string, toRollNo string, numCoins int, remarks str
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	var id int
+	var id int64
 
 	err = stmt.QueryRow(fromRollNo, toRollNo, time.Now().Unix(), numCoins, tax, remarks).Scan(&id);
-	
+
 	if err != nil {
 		tx.Rollback()
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
@@ -103,7 +103,7 @@ func TransferCoins(fromRollNo string, toRollNo string, numCoins int, remarks str
 	return formatTxnID(id, TRANSFER), nil
 }
 
-func CalculateTransferTax(fromRollNo string, toRollNo string, numCoins int) (int, error) {
+func CalculateTransferTax(fromRollNo string, toRollNo string, numCoins int64) (int64, error) {
 
 	err := validateCoinValue(numCoins)
 	if err != nil {
@@ -124,11 +124,11 @@ func CalculateTransferTax(fromRollNo string, toRollNo string, numCoins int) (int
 		return 0, errors.NewHTTPError(nil, http.StatusBadRequest, "user account does not exist")
 	}
 
-	var tax int
+	var tax int64
 	if fromRollNo[:2] == toRollNo[:2] {
-		tax = (numCoins * viper.GetInt("TAX.INTER_BATCH") / 100)
+		tax = (numCoins * viper.GetInt64("TAX.INTER_BATCH") / 100)
 	} else {
-		tax = (numCoins * viper.GetInt("TAX.INTRA_BATCH") / 100)
+		tax = (numCoins * viper.GetInt64("TAX.INTRA_BATCH") / 100)
 	}
 
 	return tax, nil

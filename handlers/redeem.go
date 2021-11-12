@@ -10,7 +10,7 @@ import (
 )
 
 type NewRedeemRequest struct {
-	NumCoins       int    `json:"numCoins"`
+	NumCoins       int64    `json:"numCoins"`
 	ReceiverRollNo string `json:"receiverRollNo"`
 	Item           string `json:"item"`
 	Otp            string `json:"otp"`
@@ -21,7 +21,7 @@ type NewRedeemResponse struct {
 }
 
 type UpdateRedeemRequest struct {
-	RedeemId int `json:"redeemId"`
+	RedeemId int64 `json:"redeemId"`
 }
 
 type RedeemListResponse struct {
