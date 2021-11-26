@@ -17,9 +17,13 @@ TAX:
   INTRA_BATCH: 33
 
 JWT:
+  ACCESS_TOKEN:
+    NAME: "access_token"
+    EXPIRATION_TIME_IN_MIN: 10
+  REFRESH_TOKEN: 
+    NAME: "refresh_token"
+    EXPIRATION_TIME_IN_MIN: 50000
   PRIVATE_KEY: "this-is-a-secret"
-  EXPIRATION_TIME_IN_MIN: 10
-  COOKIE_NAME: "token"
 
 LOGGER:
   LOG_LEVEL: 5 # Error: 2, Warn: 3, Info: 4, Debug: 5

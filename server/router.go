@@ -17,6 +17,8 @@ func setRoutes() {
 	http.HandleFunc("/auth/check", CORS(auth.IsAuthorized((errors.Handler(handlers.CheckLogin)))))
 	http.HandleFunc("/auth/otp", CORS(errors.Handler(handlers.GenerateOtp)))
 	http.HandleFunc("/auth/logout", CORS(errors.Handler(handlers.Logout)))
+	http.HandleFunc("/auth/refresh", CORS(errors.Handler(handlers.RefreshToken)))
+	http.HandleFunc("/auth/refresh/invalidate", CORS(auth.IsAuthorized(errors.Handler(handlers.InvalidateRefreshTokens))))
 
 	http.HandleFunc("/user/name", CORS(auth.IsAuthorized(errors.Handler(handlers.GetNameByRollNo))))
 
