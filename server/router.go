@@ -13,6 +13,7 @@ func setRoutes() {
 
 	http.HandleFunc("/auth/login", CORS(errors.Handler(handlers.Login)))
 	http.HandleFunc("/auth/signup", CORS(errors.Handler(handlers.Signup)))
+	http.HandleFunc("/auth/reset-password", CORS(errors.Handler(handlers.ResetPassword)))
 	http.HandleFunc("/auth/check", CORS(auth.IsAuthorized((errors.Handler(handlers.CheckLogin)))))
 	http.HandleFunc("/auth/otp", CORS(errors.Handler(handlers.GenerateOtp)))
 	http.HandleFunc("/auth/logout", CORS(errors.Handler(handlers.Logout)))

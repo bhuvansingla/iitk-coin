@@ -31,6 +31,11 @@ func Create(rollNo string, hashedPasssword string, name string) error {
 	return nil
 }
 
+func UpdatePassword(rollNo string, hashedPasssword string) error {
+	_, err := database.DB.Exec("UPDATE ACCOUNT SET password = $1 WHERE rollNo = $2", hashedPasssword, rollNo)
+	return err
+}
+
 func UserExists(rollNo string) (bool, error) {
 	row := database.DB.QueryRow("SELECT rollNo FROM ACCOUNT WHERE rollNo=$1", rollNo)
 	scannedRow := ""
