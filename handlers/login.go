@@ -109,7 +109,7 @@ func Logout(w http.ResponseWriter, r *http.Request) error {
 
 	setCookies(w, "", "")
 
-	err = account.DeleteToken(rollNo)
+	err = account.DeleteRefreshToken(rollNo)
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}

@@ -18,7 +18,7 @@ func GenerateRefreshToken(rollNo string) (string, error) {
 		return "", err
 	}
 
-	err = account.UpdateToken(refreshToken, rollNo)
+	err = account.UpdateRefreshToken(refreshToken, rollNo)
 	if err != nil {
 		return "", err
 	}
@@ -62,7 +62,7 @@ func CheckRefreshTokenValidity(r *http.Request) (string, error) {
 		return "", errors.NewHTTPError(err, http.StatusBadRequest, "bad refresh token")
 	}
 
-	refreshToken, err := account.GetToken(rollNo)
+	refreshToken, err := account.GetRefreshToken(rollNo)
 	if err != nil {
 		return "", errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}

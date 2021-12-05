@@ -43,7 +43,7 @@ func InvalidateRefreshTokens(w http.ResponseWriter, r *http.Request) error {
 		return errors.NewHTTPError(nil, http.StatusUnauthorized, "you don't have permission to invalidate refresh tokens")
 	}
 
-	err = account.InvalidateAllTokens()
+	err = account.InvalidateAllRefreshTokens()
 	if err != nil {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
