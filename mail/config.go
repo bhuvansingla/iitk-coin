@@ -20,12 +20,14 @@ type EmailRequest struct {
 	OTP string
 }
 
-var MailChannel chan EmailRequest
-var from string
-var password string
-var server smtpServer
-var auth smtp.Auth
-var otpValidity string
+var (
+	MailChannel chan EmailRequest
+	from        string
+	password    string
+	server      smtpServer
+	auth        smtp.Auth
+	otpValidity string
+)
 
 func init() {
 	MailChannel = make(chan EmailRequest)

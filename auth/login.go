@@ -28,7 +28,7 @@ func Login(rollNo string, password string) (ok bool, err error) {
 	}
 
 	if !util.CompareHashAndPassword(passwordFromRollNo, password) {
-		return false, errors.NewHTTPError(nil, http.StatusBadRequest, "invalid password")
+		return false, errors.NewHTTPError(nil, http.StatusUnauthorized, "invalid password")
 	}
 	return true, nil
 }
