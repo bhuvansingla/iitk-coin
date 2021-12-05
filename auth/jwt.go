@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bhuvansingla/iitk-coin/errors"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/spf13/viper"
 )
@@ -16,10 +17,33 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(rollNo string) (string, error) {
+func GetRollNoFromRequest(r *http.Request) (string, error) {
+	cookie, err := r.Cookie(viper.GetString("JWT.ACCESS_TOKEN.NAME"))
+	if err != nil {
+		return "", err
+	}
+	return GetRollNoFromTokenCookie(cookie)
+}
 
-	expirationTime := time.Now().Add(time.Duration(viper.GetInt("JWT.EXPIRATION_TIME_IN_MIN")) * time.Minute)
+func GetRollNoFromTokenCookie(cookie *http.Cookie) (string, error) {
+	token := cookie.Value
+	claims := &Claims{}
+	_, err := jwt.ParseWithClaims(token, claims, keyFunc)
+	if err != nil {
+		return "", err
+	}
+	return claims.RollNo, nil
+}
 
+func keyFunc(token *jwt.Token) (interface{}, error) {
+	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		return nil, fmt.Errorf("invalid signing method")
+	}
+	return privateKey, nil
+}
+
+func generateToken(rollNo string, expirationTime time.Time) (string, error) {
+	
 	claims := &Claims{
 		RollNo: rollNo,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -37,66 +61,25 @@ func GenerateToken(rollNo string) (string, error) {
 	return tokenString, nil
 }
 
-func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+func isTokenValid(cookie *http.Cookie) error {
 
-	return func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie(viper.GetString("JWT.COOKIE_NAME"))
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("bad token"))
-			return
-		}
+	token, err := jwt.Parse(cookie.Value, keyFunc)
 
-		token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("invalid signing method")
-			}
-			return privateKey, nil
-		})
-
-		if token.Valid {
-			endpoint(w, r)
-			return
-		} else if ve, ok := err.(*jwt.ValidationError); ok {
-			if ve.Errors&jwt.ValidationErrorMalformed != 0 {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte("bad token"))
-				return
-			} else if ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
-				// Token is either expired or not active yet
-				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte("token expired"))
-				return
-			} else {
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
-				return
-			}
+	if token.Valid {
+		return nil
+	} 
+	
+	jwtError, ok := err.(*jwt.ValidationError)
+	
+	if ok {
+		if jwtError.Errors&jwt.ValidationErrorMalformed != 0 {
+			return errors.NewHTTPError(err, http.StatusBadRequest, "validation malformed")
+		} else if jwtError.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
+			return errors.NewHTTPError(err, http.StatusUnauthorized, "token expired")
 		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
-			return
+			return errors.NewHTTPError(nil, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		}
-		
+	} else {
+		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
-}
-
-func GetRollNoFromRequest(r *http.Request) (string, error) {
-	cookie, err := r.Cookie(viper.GetString("JWT.COOKIE_NAME"))
-	if err != nil {
-		return "", err
-	}
-	return GetRollNoFromTokenCookie(cookie)
-}
-
-func GetRollNoFromTokenCookie(cookie *http.Cookie) (string, error) {
-	token := cookie.Value
-	claims := &Claims{}
-	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-		return privateKey, nil
-	})
-	if err != nil {
-		return "", err
-	}
-	return claims.RollNo, nil
 }

@@ -40,9 +40,12 @@ func GenerateOtp(rollNo string) error {
 		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 
-	if err = mail.SendOTP(rollNo, otp); err != nil {
-		return errors.NewHTTPError(err, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	emailRequest := mail.EmailRequest{
+		To:     rollNo,
+		OTP:    otp,
 	}
+
+	mail.MailChannel <- emailRequest
 
 	return nil
 }
